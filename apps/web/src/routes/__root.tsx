@@ -1,4 +1,4 @@
-import type { AppRouter } from "@aws/api";
+import type { AppRouter } from "@project/api";
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import {

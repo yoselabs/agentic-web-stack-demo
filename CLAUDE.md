@@ -31,7 +31,7 @@ Monorepo: TanStack Start (frontend) + Hono (API server) + tRPC + Prisma + Postgr
 
 ## Package Naming
 
-All workspace packages use `@aws/*` prefix (e.g., `@aws/api`, `@aws/db`).
+All workspace packages use `@project/*` prefix (e.g., `@aws/api`, `@aws/db`).
 
 ## Library Skills (@tanstack/intent)
 

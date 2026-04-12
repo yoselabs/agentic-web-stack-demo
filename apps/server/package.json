@@ -1,17 +1,17 @@
 {
-  "name": "@aws/server",
+  "name": "@project/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && node dist/index.js",
+    "build": "tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@aws/api": "workspace:*",
-    "@aws/db": "workspace:*",
-    "@aws/env": "workspace:*",
+    "@project/api": "workspace:*",
+    "@project/db": "workspace:*",
+    "@project/env": "workspace:*",
     "@hono/node-server": "^1.13.0",
     "@hono/trpc-server": "^0.3.0",
     "hono": "^4.7.0"

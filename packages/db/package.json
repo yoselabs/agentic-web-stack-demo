@@ -1,5 +1,5 @@
 {
-  "name": "@aws/db",
+  "name": "@project/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",

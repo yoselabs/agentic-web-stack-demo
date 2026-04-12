@@ -1,6 +1,6 @@
-import { db } from "@aws/db";
+import { db } from "@project/db";
 
-export function createContext() {
+export async function createContext() {
   return { db };
 }
 

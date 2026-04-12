@@ -1,5 +1,5 @@
 {
-  "name": "@aws/api",
+  "name": "@project/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,6 +16,6 @@
   },
   "dependencies": {
     "@trpc/server": "^11.0.0",
-    "@aws/db": "workspace:*"
+    "@project/db": "workspace:*"
   }
 }
