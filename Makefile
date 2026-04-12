@@ -9,6 +9,8 @@ setup:
 	@echo "Waiting for Postgres..."
 	@until docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; do sleep 1; done
 	pnpm -w run db:push
+	@echo "Generating route tree..."
+	@cd apps/web && npx vite dev --port 0 &>/dev/null & VIT_PID=$$!; sleep 4; kill $$VIT_PID 2>/dev/null; true
 	prek install
 	@echo "✓ Ready. Run 'make dev' to start."
 
