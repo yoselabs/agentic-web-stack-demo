@@ -132,3 +132,4 @@ Do NOT copy code from prior rounds. Let the subagents build fresh — that's the
 | 1 | `feat/retro-board` | 18/18 | 10 | 12 | ~317K | ~$15-23 | 22 min |
 | 2 | `feat/retro-board-r2` | 41/41 | 7 | 8 | ~182K | ~$11-17 | 10 min |
 | 3 | `feat/retro-board-r3` | 41/41 | 4 | 9 | ~236K | ~$14-21 | 8 min |
+| 4 | `feat/retro-board-r4` | 41/41 | 3 | 8 | ~301K | ~$14-21 | 8 min |
