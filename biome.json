@@ -20,7 +20,8 @@
       "dist",
       ".output",
       ".vinxi",
-      "prisma/generated"
+      "prisma/generated",
+      "routeTree.gen.ts"
     ]
   }
 }

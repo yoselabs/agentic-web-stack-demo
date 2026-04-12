@@ -14,11 +14,12 @@ Monorepo: TanStack Start (frontend) + Hono (API server) + tRPC + Prisma + Postgr
 
 ## Commands
 
-- `pnpm dev` — start both web and server
-- `pnpm typecheck` — `tsc -b` across all packages
-- `pnpm lint` — Biome check
-- `pnpm db:generate` — regenerate Prisma client
-- `pnpm db:push` — push schema to database
+- `make setup` — zero-conf: installs deps, starts Postgres, pushes schema
+- `make dev` — start both web and server
+- `make check` — run typecheck + lint
+- `make db-push` — push Prisma schema to database
+- `make db-generate` — regenerate Prisma client
+- `make clean` — tear down containers and node_modules
 
 ## Critical Rules
 

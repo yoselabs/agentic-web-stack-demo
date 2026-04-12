@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -16,7 +16,7 @@ function HomePage() {
         <p className="text-lg text-gray-600">
           {hello.isLoading
             ? "Loading..."
-            : hello.data?.message ?? "Failed to load"}
+            : (hello.data?.message ?? "Failed to load")}
         </p>
       </div>
     </main>

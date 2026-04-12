@@ -1,8 +1,8 @@
-import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import type { AppRouter } from "@aws/api";
 import { QueryClient } from "@tanstack/react-query";
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import type { AppRouter } from "@aws/api";
 import { routeTree } from "./routeTree.gen";
 
 function makeQueryClient() {

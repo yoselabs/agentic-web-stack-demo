@@ -1,13 +1,13 @@
-import type { ReactNode } from "react";
+import type { AppRouter } from "@aws/api";
+import { QueryClientProvider } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router";
-import { QueryClientProvider } from "@tanstack/react-query";
-import type { QueryClient } from "@tanstack/react-query";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import type { AppRouter } from "@aws/api";
+import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 
