@@ -3,4 +3,6 @@ export interface Todo {
   title: string;
   completed: boolean;
   position: number;
+  createdAt: string;
+  updatedAt: string;
 }

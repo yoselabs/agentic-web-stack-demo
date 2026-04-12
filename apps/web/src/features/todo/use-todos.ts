@@ -1,9 +1,11 @@
 import {
   type DragEndEvent,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { AppRouter } from "@project/api";
 import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
@@ -23,6 +25,9 @@ export function useTodos(
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const createTodo = useMutation(
@@ -78,13 +83,17 @@ export function useTodos(
     const newIndex = activeTodos.findIndex((t) => t.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = [...activeTodos];
-    const [moved] = reordered.splice(oldIndex, 1);
-    reordered.splice(newIndex, 0, moved);
+    const reordered = arrayMove(activeTodos, oldIndex, newIndex);
+
+    // Read current completed todos from cache to avoid stale closure
+    const currentData = queryClient.getQueryData<typeof todos.data>(
+      trpc.todo.list.queryFilter().queryKey,
+    );
+    const currentCompleted = currentData?.filter((t) => t.completed) ?? [];
 
     queryClient.setQueryData(trpc.todo.list.queryFilter().queryKey, [
       ...reordered,
-      ...completedTodos,
+      ...currentCompleted,
     ]);
 
     reorderTodos.mutate({ ids: reordered.map((t) => t.id) });
@@ -97,6 +106,7 @@ export function useTodos(
     activeTodos,
     completedTodos,
     sensors,
+    createTodo,
     completeTodo,
     deleteTodo,
     handleSubmit,

@@ -25,6 +25,7 @@ function TodosPage() {
     activeTodos,
     completedTodos,
     sensors,
+    createTodo,
     completeTodo,
     deleteTodo,
     handleSubmit,
@@ -43,7 +44,9 @@ function TodosPage() {
           onChange={(e) => setNewTitle(e.target.value)}
           className="flex-1"
         />
-        <Button type="submit">Add</Button>
+        <Button type="submit" disabled={createTodo.isPending}>
+          {createTodo.isPending ? "Adding..." : "Add"}
+        </Button>
       </form>
 
       {todos.isLoading ? (
