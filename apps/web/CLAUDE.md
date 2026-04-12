@@ -129,8 +129,8 @@ When using `onMutate` callbacks with tRPC, define explicit types for the data sh
 type TodoItem = { id: string; title: string; position: number };
 type TodoList = TodoItem[];
 
-const previous = queryClient.getQueryData<TodoList>(trpc.todo.list.queryOptions().queryKey);
-queryClient.setQueryData<TodoList>(trpc.todo.list.queryOptions().queryKey, (old) => {
+const previous = queryClient.getQueryData<TodoList>(trpc.todo.list.queryFilter().queryKey);
+queryClient.setQueryData<TodoList>(trpc.todo.list.queryFilter().queryKey, (old) => {
   if (!old) return old;
   // TypeScript now knows old is TodoList, not unknown
   return old.map((item) => (item.id === targetId ? { ...item, position: newPos } : item));

@@ -49,7 +49,7 @@ function TodosPage() {
         </Button>
       </form>
 
-      {todos.isLoading ? (
+      {todos.isPending ? (
         <p className="text-muted-foreground">Loading...</p>
       ) : todos.data?.length === 0 ? (
         <p className="text-muted-foreground">No todos yet</p>
