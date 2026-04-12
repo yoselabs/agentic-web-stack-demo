@@ -1,4 +1,4 @@
-.PHONY: setup dev db db-push db-generate db-studio check typecheck lint lint-fix test test-ui clean
+.PHONY: setup dev db db-push db-generate db-studio check typecheck lint fix test test-ui clean
 
 # Zero-conf setup: clone → make setup → make dev
 setup:
@@ -9,6 +9,7 @@ setup:
 	@echo "Waiting for Postgres..."
 	@until docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; do sleep 1; done
 	pnpm -w run db:push
+	prek install
 	@echo "✓ Ready. Run 'make dev' to start."
 
 # Start both web and server
@@ -26,13 +27,13 @@ db-studio:
 	pnpm -w run db:studio
 
 # Quality gates
-check: typecheck lint
+check: lint typecheck
+lint:
+	@agent-harness lint
+fix:
+	@agent-harness fix
 typecheck:
 	pnpm -w run typecheck
-lint:
-	pnpm -w run lint
-lint-fix:
-	pnpm -w run lint:fix
 
 # BDD Tests (uses separate test database on port 5433)
 test:

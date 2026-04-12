@@ -1,0 +1,9 @@
+# AI Harness configuration
+# Detected stacks: docker, javascript
+stacks: [docker, javascript]
+
+skip: [typecheck]  # tsc -b handled separately in Makefile (cross-package references)
+
+exclude:
+  - e2e/.features-gen/
+  - e2e/test-results/

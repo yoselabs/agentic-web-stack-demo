@@ -14,12 +14,17 @@ Monorepo: TanStack Start (frontend) + Hono (API server) + tRPC + Prisma + Postgr
 
 ## Commands
 
-- `make setup` — zero-conf: installs deps, starts Postgres, pushes schema
+- `make setup` — zero-conf: installs deps, starts Postgres, pushes schema, installs pre-commit hooks
 - `make dev` — start both web and server
-- `make check` — run typecheck + lint
+- `make check` — full quality gate: `agent-harness lint` + `tsc -b`
+- `make fix` — auto-fix lint issues via `agent-harness fix`
+- `make test` — BDD tests (separate test DB on port 5433)
 - `make db-push` — push Prisma schema to database
 - `make db-generate` — regenerate Prisma client
 - `make clean` — tear down containers and node_modules
+
+Pre-commit hooks run `agent-harness fix` then `agent-harness lint` automatically.
+Never truncate lint or test output — read the full error.
 
 ## Critical Rules
 
