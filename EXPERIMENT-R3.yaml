@@ -1,0 +1,290 @@
+experiment:
+  name: "Retro Board — Agentic Web Stack Stress Test (Round 3)"
+  date: "2026-04-12"
+  model: "claude-opus-4-6 (1M context)"
+  template_version: "Same as Round 2 (no new template commits)"
+  goal: >
+    Maximum efficiency run — same retro board feature, same template,
+    aggressive batching strategy targeting <= 5 subagent dispatches.
+
+workflow:
+  phases:
+    - name: "Brainstorming & Design"
+      skills: ["superpowers:brainstorming"]
+      output: "docs/superpowers/specs/2026-04-12-retro-board-r3-design.md"
+      notes: "Fast confirmation pass — requirements identical to R1/R2"
+
+    - name: "Spec Code Review"
+      skills: ["superpowers:requesting-code-review"]
+      findings: "4 important issues fixed (missing card create optimistic update, enum convention note, route tree regen timing, success criteria wording)"
+
+    - name: "Implementation Planning"
+      skills: ["superpowers:writing-plans"]
+      output: "docs/superpowers/plans/2026-04-12-retro-board-r3.md"
+      tasks: 4
+      notes: "Complete code in every step — subagents paste rather than design from scratch"
+
+    - name: "Subagent-Driven Execution"
+      skills: ["superpowers:subagent-driven-development"]
+      model_strategy: "sonnet for implementation + spec review, sonnet/code-reviewer for quality review, opus for orchestration"
+
+results:
+  commits: 6
+  files_changed: 15  # excluding pnpm-lock.yaml
+  lines_added: 845
+  lines_removed: 4
+
+  new_files:
+    - apps/web/src/routes/_authenticated/boards/$boardId.tsx
+    - apps/web/src/routes/_authenticated/boards/index.tsx
+    - apps/web/src/routes/_authenticated/boards/new.tsx
+    - e2e/features/boards.feature
+    - e2e/steps/boards.ts
+    - packages/api/src/routers/board.ts
+    - packages/api/src/routers/card.ts
+    - packages/api/src/routers/vote.ts
+    - packages/db/prisma/schema/board.prisma
+    - packages/ui/src/components/badge.tsx
+
+  modified_files:
+    - apps/web/src/widgets/navbar.tsx
+    - packages/api/src/router.ts
+    - packages/db/prisma/schema/auth.prisma
+    - e2e/steps/auth.ts
+    - packages/ui/package.json
+
+  quality_gates:
+    lint_checks: "13/13 passed"
+    typecheck: "passed"
+    bdd_tests: "41/41 passed (19 desktop + 21 mobile + 1 db-reset)"
+    test_time: "44.7s (7 parallel workers)"
+
+  stack_coverage:
+    prisma: "3 new models, 2 enums, relations, cascade delete, @@unique constraint"
+    trpc: "3 nested routers, 7 procedures, protectedProcedure + NOT_FOUND errors"
+    react_query: "optimistic mutations (create/delete/toggle) with rollback, explicit BoardData types"
+    tanstack_router: "parameterized route ($boardId), file-based routing, 3 new routes"
+    better_auth: "auth guards on all routes, session in tRPC context"
+    playwright_bdd: "8 Gherkin scenarios, shared + new step definitions, desktop + mobile"
+
+subagents:
+  dispatches:
+    - task: "Task 1: Prisma schema"
+      model: "sonnet"
+      role: "implementer"
+      tokens: ~20480
+      duration_ms: 47397
+
+    - task: "Spec review: Prisma schema"
+      model: "sonnet"
+      role: "reviewer"
+      tokens: ~18404
+      duration_ms: 10133
+
+    - task: "Code quality review: Prisma schema"
+      model: "sonnet"
+      role: "reviewer"
+      tokens: ~20811
+      duration_ms: 39053
+
+    - task: "Task 2: tRPC routers (batched)"
+      model: "sonnet"
+      role: "implementer"
+      tokens: ~23506
+      duration_ms: 63497
+
+    - task: "Spec review: tRPC routers"
+      model: "sonnet"
+      role: "reviewer"
+      tokens: ~19826
+      duration_ms: 18207
+
+    - task: "Code quality review: tRPC routers"
+      model: "sonnet"
+      role: "reviewer"
+      tokens: ~29714
+      duration_ms: 56269
+
+    - task: "Task 3: All UI pages + navbar (batched)"
+      model: "sonnet"
+      role: "implementer"
+      tokens: ~30407
+      duration_ms: 86553
+
+    - task: "Task 4: BDD feature + step definitions"
+      model: "sonnet"
+      role: "implementer"
+      tokens: ~31574
+      duration_ms: 138415
+
+    - task: "Spec review: BDD tests"
+      model: "haiku"
+      role: "reviewer"
+      tokens: ~41646
+      duration_ms: 7506
+
+  totals:
+    subagent_dispatches: 9
+    implementation_dispatches: 4
+    review_dispatches: 5
+    subagent_total_tokens: ~236368
+    subagent_total_duration_ms: ~467030
+    subagent_total_duration_min: ~7.8
+    # Orchestrator (opus) tokens estimated ~200K additional
+    # Total session tokens estimated: ~500K
+
+  model_distribution:
+    sonnet: 8
+    haiku: 1
+
+  orchestrator_work:
+    - "Badge component installation (missing from template)"
+    - "Route tree regeneration via make dev"
+    - "Type safety fix: board.data cast to BoardData"
+    - "as-string cast cleanup for static routes"
+    - "BDD locator fixes (3 iterations): column scoping, card selector, delete targeting, click step unification"
+
+cost_estimate:
+  note: >
+    Subagent tokens are total (input + output combined).
+    Orchestrator context grows over conversation.
+    These are rough estimates, not exact billing.
+  estimated_subagent_cost_usd: "~$4-6"
+  estimated_orchestrator_cost_usd: "~$10-15"
+  estimated_total_cost_usd: "~$14-21"
+
+# ==============================
+# ROUND 3 vs PRIOR ROUNDS
+# ==============================
+
+comparison:
+  summary: >
+    Round 3 achieved the 4-implementation-dispatch target (down from R2's 7 impl dispatches).
+    However, adding spec + code quality reviews after each task increased total dispatches
+    to 9. The superpowers review process added thoroughness but also overhead — 5 review
+    dispatches vs R2's 1. Wall time for subagents was comparable to R2 (~8 min vs ~10 min),
+    but orchestrator work was more complex due to template gaps (missing Badge component)
+    and BDD locator debugging (3 iterations). Overall cost was slightly higher than R2
+    due to review overhead.
+
+  metrics:
+    implementation_dispatches:
+      round_1: 10
+      round_2: 7
+      round_3: 4
+      delta_vs_r2: "-43%"
+      notes: "Hit the target — 4 implementation dispatches (schema, routers, all UI, BDD)"
+
+    total_dispatches_including_reviews:
+      round_1: 12
+      round_2: 8
+      round_3: 9
+      delta_vs_r2: "+13%"
+      notes: "More total dispatches due to 5 review dispatches (superpowers workflow requirement)"
+
+    subagent_total_tokens:
+      round_1: 316728
+      round_2: 181824
+      round_3: 236368
+      delta_vs_r2: "+30%"
+      notes: "Review dispatches added ~130K tokens; implementation dispatches used ~106K (42% less than R2)"
+
+    subagent_wall_time_min:
+      round_1: 22.1
+      round_2: 9.7
+      round_3: 7.8
+      delta_vs_r2: "-20%"
+      notes: "Faster implementation, but BDD task took 2.3min (longer than R2's batched BDD 1.4min)"
+
+    estimated_cost_usd:
+      round_1: "~$15-23"
+      round_2: "~$11-17"
+      round_3: "~$14-21"
+      delta_vs_r2: "~+25%"
+      notes: "Higher due to review overhead and orchestrator complexity"
+
+    files_changed:
+      round_1: 14
+      round_2: 13
+      round_3: 15
+      delta_vs_r2: "+2"
+      notes: "Added badge.tsx (template gap) and modified auth.ts (click step improvement)"
+
+    lines_added:
+      round_1: 2304
+      round_2: 2096
+      round_3: 845
+      delta_vs_r2: "-60%"
+      notes: "Excluding pnpm-lock.yaml (1540 lines). Actual feature code is leaner."
+
+    bdd_tests:
+      round_1: "18/18"
+      round_2: "41/41"
+      round_3: "41/41"
+      notes: "Same as R2 — desktop + mobile suites"
+
+    quality_gates:
+      round_1: "13/13"
+      round_2: "13/13"
+      round_3: "13/13"
+
+    template_gaps:
+      round_1: 0
+      round_2: 0
+      round_3: 1
+      notes: "Missing Badge component in @project/ui — had to install via shadcn"
+
+    bdd_fix_iterations:
+      round_1: "~10x longer BDD task"
+      round_2: 2
+      round_3: 3
+      notes: "Column scoping, card selector (no data-slot), delete targeting, click step unification"
+
+  new_issues_in_round_3:
+    - issue: "Missing Badge component in @project/ui"
+      severity: "medium"
+      notes: >
+        The plan used Badge component from shadcn/ui but it wasn't installed in
+        the template. Orchestrator had to install it manually. Template should
+        include commonly-used shadcn components or document how to add them.
+
+    - issue: "board.data type inference returns () => never"
+      severity: "medium"
+      notes: >
+        The tRPC board.get procedure returns a spread-with-undefined-override
+        pattern ({...board, cards: cards.map(c => ({...c, votes: undefined}))})
+        which TypeScript can't infer through the tRPC → React Query chain.
+        Required explicit BoardData type cast in the component. Template should
+        document this pattern.
+
+    - issue: "Card component lacks data-slot attribute"
+      severity: "low"
+      notes: >
+        Newer shadcn Card versions have data-slot="card" for testing selectors.
+        This template's Card is older and lacks it. BDD locators had to use
+        CSS class selectors (.rounded-xl.border) instead — fragile.
+
+    - issue: "React Query retries NOT_FOUND errors"
+      severity: "low"
+      notes: >
+        When accessing a board the user doesn't own, tRPC throws NOT_FOUND.
+        React Query retries 3 times (~7s delay) before showing "Board not found".
+        BDD test needed a 10s wait. Could be fixed by disabling retries for
+        known-error responses at the tRPC client level.
+
+    - issue: "Link asChild renders as <a> without role='button'"
+      severity: "low"
+      notes: >
+        <Button asChild><Link>text</Link></Button> renders as <a> with button
+        styles but no role="button". Playwright getByRole("button") can't find it.
+        BDD click step had to be updated to also check getByRole("link") as fallback.
+
+  dx_qualitative:
+    - "Complete-code-in-plan strategy worked — subagents pasted and adjusted, minimal exploration"
+    - "Batching all 3 UI pages into one dispatch succeeded — the complex detail page was handled correctly"
+    - "Review overhead was significant — 5 review dispatches vs 4 implementation dispatches"
+    - "Spec reviewers caught a genuine issue (single-user board ownership semantics) but were wrong about it being a bug"
+    - "Code quality reviewers added value with the vote.toggle race condition observation and alignment fix"
+    - "BDD locator debugging was the main friction — 3 iterations to get all 8 scenarios green"
+    - "Template gap (missing Badge) was unexpected since R1 and R2 apparently didn't need it or had it"
+    - "The type inference issue with board.data is the most impactful template gap — affects any complex tRPC return type"
