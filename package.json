@@ -1,0 +1,28 @@
+{
+  "name": "agentic-web-stack",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @aws/web --filter @aws/server dev",
+    "build": "pnpm -r build",
+    "typecheck": "tsc -b",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "db:generate": "pnpm --filter @aws/db generate",
+    "db:push": "pnpm --filter @aws/db push",
+    "db:studio": "pnpm --filter @aws/db studio"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "typescript": "^5.7.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

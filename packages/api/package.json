@@ -1,0 +1,21 @@
+{
+  "name": "@aws/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./context": {
+      "default": "./src/context.ts"
+    },
+    "./router": {
+      "default": "./src/router.ts"
+    }
+  },
+  "dependencies": {
+    "@trpc/server": "^11.0.0",
+    "@aws/db": "workspace:*"
+  }
+}

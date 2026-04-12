@@ -6,6 +6,10 @@ dist/
 .output/
 .vinxi/
 
+# Generated
+routeTree.gen.ts
+*.tsbuildinfo
+
 # Environment
 .env
 .env.local
