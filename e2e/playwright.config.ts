@@ -24,7 +24,7 @@ export default defineConfig({
   retries: 0,
   fullyParallel: true,
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: "http://localhost:3100",
     trace: "on-first-retry",
   },
   projects: [
@@ -58,19 +58,23 @@ export default defineConfig({
   webServer: [
     {
       command: "pnpm --filter @project/server dev",
-      port: 3001,
+      port: 3101,
       reuseExistingServer: !process.env.CI,
       env: {
+        PORT: "3101",
         DATABASE_URL: TEST_DATABASE_URL,
         BETTER_AUTH_SECRET: "test-secret-key-for-e2e-tests-only-32chars",
-        BETTER_AUTH_URL: "http://localhost:3001",
-        CORS_ORIGIN: "http://localhost:3000",
+        BETTER_AUTH_URL: "http://localhost:3101",
+        CORS_ORIGIN: "http://localhost:3100",
       },
     },
     {
-      command: "pnpm --filter @project/web dev",
-      port: 3000,
+      command: "pnpm --filter @project/web exec vite dev --port 3100",
+      port: 3100,
       reuseExistingServer: !process.env.CI,
+      env: {
+        VITE_API_URL: "http://localhost:3101",
+      },
     },
   ],
 });

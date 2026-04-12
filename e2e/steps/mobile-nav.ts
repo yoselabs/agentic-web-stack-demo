@@ -6,7 +6,9 @@ const { When: when, Then: then } = createBdd();
 when("I open the mobile menu", async ({ page }) => {
   await page.getByRole("button", { name: "Toggle menu" }).click();
   // Wait for the sheet animation to complete
-  await page.waitForTimeout(400);
+  await page
+    .locator('[role="dialog"]')
+    .waitFor({ state: "visible", timeout: 3000 });
 });
 
 then("I should see {string} in the menu", async ({ page }, text: string) => {

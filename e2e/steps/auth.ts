@@ -117,12 +117,12 @@ then("I should be on the login page", async ({ page }) => {
 });
 
 then("I should be on the home page", async ({ page }) => {
-  await expect(page).toHaveURL("http://localhost:3000/", { timeout: 5000 });
+  await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
 });
 
 then("I should be signed out", async ({ page }) => {
   // After sign-out, user lands on either / or /login (race between explicit nav and auth guard)
-  await page.waitForURL(/^\http:\/\/localhost:3000\/(login)?$/, {
+  await page.waitForURL(/\/(login)?$/, {
     timeout: 5000,
   });
   // Verify not on an authenticated page
@@ -139,7 +139,9 @@ then("I should see {string}", async ({ page }, text: string) => {
     const hamburger = page.getByRole("button", { name: "Toggle menu" });
     if (await hamburger.isVisible()) {
       await hamburger.click();
-      await page.waitForTimeout(400);
+      await page
+        .locator('[role="dialog"]')
+        .waitFor({ state: "visible", timeout: 3000 });
     }
   }
   await expect(
