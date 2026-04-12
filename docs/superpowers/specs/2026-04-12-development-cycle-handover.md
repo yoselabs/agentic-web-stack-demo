@@ -31,7 +31,8 @@ packages/api/src/
 - Handle domain rules, data transformations, complex queries
 
 **Transaction rules:**
-- All mutations: router wraps in `db.$transaction(async (tx) => ...)`
+- Multi-write or locking mutations: router wraps in `db.$transaction((tx) => ...)`
+- Single-write mutations: router passes `ctx.db` directly (no transaction overhead)
 - All reads: router calls service with `db` directly (no transaction)
 - Cross-service operations: router wraps multiple service calls in one `$transaction`
 - Services accept either `db` or `tx` — same interface, they don't care which

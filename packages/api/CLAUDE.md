@@ -56,12 +56,11 @@ export const postRouter = router({
   list: protectedProcedure.query(({ ctx }) => {
     return listPosts(ctx.db, ctx.session.user.id);
   }),
+  // Simple single-write mutation — no transaction needed
   create: protectedProcedure
     .input(z.object({ title: z.string().min(1) }))
     .mutation(({ ctx, input }) => {
-      return ctx.db.$transaction((tx) =>
-        createPost(tx, ctx.session.user.id, input.title),
-      );
+      return createPost(ctx.db, ctx.session.user.id, input.title);
     }),
 });
 ```
@@ -79,10 +78,13 @@ export const appRouter = router({
 
 ## Transaction Rules
 
-- **All mutations:** router wraps in `db.$transaction(async (tx) => ...)`
-- **All reads:** router calls service with `db` directly (no transaction)
+- **Multi-write or locking mutations:** router wraps in `db.$transaction((tx) => ...)`
+- **Single-write mutations:** router passes `ctx.db` directly (no transaction overhead)
+- **All reads:** router passes `ctx.db` directly
 - **Cross-service:** router wraps multiple service calls in one `$transaction`
 - **Race conditions:** service uses `SELECT FOR UPDATE` inside the tx it receives
+
+When to use `$transaction`: the service does 2+ writes, or uses `SELECT FOR UPDATE`, or coordinates multiple services. When in doubt, check if the service calls `lockActiveTodos` or does multiple Prisma operations.
 
 ```typescript
 // Race-safe pattern inside a service function
