@@ -29,6 +29,15 @@ Rules:
 - Background steps run per-scenario, not per-feature
 - Keep scenarios focused — one behavior per scenario
 
+## Feature File Organization
+
+Feature files map to **domain areas**, not individual capabilities:
+- `auth.feature` — all authentication scenarios
+- `todos.feature` — all todo scenarios (CRUD, reorder, filtering, etc.)
+- `mobile-nav.feature` — navigation-specific scenarios
+
+All scenarios for a domain belong in one file. Split into sub-files only when a feature exceeds ~15-20 scenarios. Step definition files mirror feature files: `steps/auth.ts`, `steps/todos.ts`, etc.
+
 ## Writing Step Definitions
 
 ```typescript

@@ -23,6 +23,8 @@ src/
 
 **Adding a new feature:** create `src/features/<name>/` with its UI components and logic. Import it from routes.
 
+**Mandatory:** Routes must be thin shells — layout, context providers, mutation hooks, and composition only. Extract all reusable components, types, and business logic into `features/` or `widgets/`. Never inline feature components in route files.
+
 ## Adding a New Page
 
 1. Create a route file in `src/routes/`:

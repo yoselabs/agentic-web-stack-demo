@@ -2,12 +2,28 @@
 
 ## Modify Schema Workflow
 
-1. Edit `prisma/schema.prisma`
+1. Edit the appropriate file in `prisma/schema/`:
+   - `base.prisma` — generator + datasource (rarely changed)
+   - `auth.prisma` — Better-Auth tables (User, Session, Account, Verification)
+   - `todo.prisma` — Todo model
+   - Create a new `<domain>.prisma` for new domains
 2. Run `make db-push` (pushes schema + regenerates client)
 3. Update TypeScript code that uses the changed models
 4. Run `make check` to verify types
 
 For production with migrations: `pnpm --filter @project/db migrate` instead of `db-push`.
+
+## Schema Organization
+
+One `.prisma` file per domain area. Models that belong together live in the same file.
+
+| File | Owner | Contents |
+|------|-------|----------|
+| `base.prisma` | Infrastructure | Generator + datasource config |
+| `auth.prisma` | Better-Auth | User, Session, Account, Verification |
+| `todo.prisma` | Application | Todo |
+
+New domains get a new file (e.g., `post.prisma` for a blog feature). Never put unrelated models in the same file.
 
 ## Table Ownership
 
