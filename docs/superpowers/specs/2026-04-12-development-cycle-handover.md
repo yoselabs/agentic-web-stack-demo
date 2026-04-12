@@ -302,24 +302,16 @@ Steps:
 - Do not batch Phase 3 tasks across features — each must go green independently
 - Do not loop Prisma queries for related data — use `include`/`select`
 
-## Known Gaps in Current Code
+## Implementation Status
 
-The existing todo feature does NOT follow these patterns yet. It is the first refactoring target:
+All patterns described in this spec are implemented in the todo feature as a reference:
 
-- `routers/todo.ts` has business logic inline (no services layer)
-- `create` and `complete` mutations have race conditions (no transaction, no `SELECT FOR UPDATE`)
-- `reorder` uses N individual updates instead of VALUES+UPDATE
-- `routes/_authenticated/todos.tsx` has orchestration logic inline (no hook extraction)
-- No service unit tests exist (only router integration tests)
-
-## Template Files to Update
-
-When implementing this spec, these existing files need updates to reference the new patterns:
-
-- `packages/api/CLAUDE.md` — rewrite "Adding a New Router" example to show router-delegates-to-service pattern
-- `apps/web/CLAUDE.md` — add hook extraction pattern, update route example to show thin shell
-- Root `CLAUDE.md` — update "Development Workflow" section to reference this spec's phase structure
-- `e2e/CLAUDE.md` — add note about step definitions being written after UI (Phase 3)
+- `services/todo.ts` — service layer with SELECT FOR UPDATE and VALUES+UPDATE
+- `routers/todo.ts` — thin router with $transaction boundaries
+- `features/todo/use-todos.ts` — orchestration hook with optimistic DnD
+- `features/todo/types.ts` — tRPC-inferred types (no manual drift)
+- Two-layer tests: `services/__tests__/todo.test.ts` + `__tests__/todo.test.ts`
+- All 4 CLAUDE.md files updated with new patterns
 
 ## Supersedes
 
