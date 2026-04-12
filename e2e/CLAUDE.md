@@ -66,10 +66,12 @@ Use the `signUpOrSignIn` helper pattern:
 
 ## Test Infrastructure
 
-- `docker-compose.test.yml` — Postgres on port 5433, tmpfs (in-memory)
-- `global-setup.ts` — destroys and recreates test container, pushes fresh schema
-- `playwright.config.ts` — starts both web and server with test env vars
-- Fully parallel execution (7 workers, ~24 seconds)
+- `docker-compose.test.yml` — Postgres on dynamic port (derived from directory hash), tmpfs (in-memory)
+- `test-env.ts` — derives unique DB port and container name from project directory hash (worktree-safe)
+- `global-setup.ts` — reuses healthy container or creates fresh; pushes schema
+- `playwright.config.ts` — starts web (port 3100) and server (port 3101) with test env vars
+- Test ports (3100/3101) are separate from dev ports (3000/3001) — both can run simultaneously
+- Fully parallel execution (7 workers), desktop then mobile with DB reset between
 
 ## Do Not
 

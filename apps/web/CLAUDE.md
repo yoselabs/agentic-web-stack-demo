@@ -32,6 +32,7 @@ src/
    - Authenticated page: `src/routes/_authenticated/settings.tsx`
 2. Export `Route` using `createFileRoute`
 3. The route tree regenerates automatically on `vite dev`
+   If the dev server isn't running when you add/remove route files, start `make dev` to regenerate. There is no standalone generation command.
 
 ### Public page
 
@@ -88,6 +89,10 @@ function MyComponent() {
   );
 }
 ```
+
+### Optimistic Updates
+
+For instant UI feedback before the server confirms, see the drag-and-drop reorder handler in `src/routes/_authenticated/todos.tsx` — it uses `queryClient.setQueryData` to update the cache immediately, with `onError` invalidation as fallback.
 
 ## Auth Client
 

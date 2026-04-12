@@ -72,6 +72,8 @@ All workspace packages use `@project/*` prefix (e.g., `@project/api`, `@project/
 | Hardcode localhost URLs | Breaks in non-local environments | Use env vars: `VITE_API_URL`, `CORS_ORIGIN`, `BETTER_AUTH_URL` |
 | Create QueryClient as module singleton | Leaks data between SSR requests | Use `getQueryClient()` pattern (per-request on server) |
 | Skip `prisma generate` after schema change | Stale types, runtime errors | Run `make db-push` (includes generate) |
+| `Link to` rejects not-yet-created routes | TanStack Router types from `routeTree.gen.ts` | Use `to={"/path" as string}` temporarily, remove once route exists and `make dev` regenerates |
+| `//` in JSX text content | Biome `noCommentText` flags as comment | Wrap in expression: `<p>{"https://example.com"}</p>` |
 
 ## Library Skills (@tanstack/intent)
 

@@ -1,17 +1,22 @@
 # packages/api — tRPC Router + Context
 
-## Adding a New Route
+## Adding a New Router
 
-1. Create a sub-router or add to the existing `appRouter` in `src/router.ts`
-2. Use `publicProcedure` for unauthenticated routes, `protectedProcedure` for authenticated
-3. Add input validation with Zod
-4. Run `make check` — types propagate to apps/web automatically
+1. Create a file in `src/routers/<name>.ts` with a sub-router
+2. Import and mount it in `src/router.ts`
+3. Use `publicProcedure` for unauthenticated routes, `protectedProcedure` for authenticated
+4. Add input validation with Zod
+5. Run `make check` — types propagate to apps/web automatically
 
-### Example: Add a sub-router
+### Example: Add a posts router
+
+Create `src/routers/post.ts`:
 
 ```typescript
-// In src/router.ts
-const postRouter = router({
+import { z } from "zod";
+import { protectedProcedure, router } from "../trpc.js";
+
+export const postRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     return ctx.db.post.findMany({
       where: { userId: ctx.session.user.id },
@@ -25,8 +30,13 @@ const postRouter = router({
       });
     }),
 });
+```
 
-// Add to appRouter
+Then mount in `src/router.ts`:
+
+```typescript
+import { postRouter } from "./routers/post.js";
+
 export const appRouter = router({
   // ... existing routes
   post: postRouter,
@@ -37,7 +47,8 @@ export const appRouter = router({
 
 - `src/trpc.ts` — single `initTRPC.create()`, exports `router`, `publicProcedure`, `protectedProcedure`
 - `src/context.ts` — `createContext()` receives session from Hono, exports `Context` type
-- `src/router.ts` — `appRouter` with all routes, exports `AppRouter` type
+- `src/router.ts` — `appRouter` merging sub-routers, exports `AppRouter` type
+- `src/routers/` — one file per domain sub-router (e.g., `todo.ts`, `post.ts`)
 - `src/index.ts` — re-exports everything
 
 ## Context
