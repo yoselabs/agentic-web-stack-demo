@@ -106,6 +106,24 @@ await db.$executeRaw`
 `;
 ```
 
+## Frontend Type Contracts
+
+`@project/api` re-exports type inference utilities so the frontend derives types from the server:
+
+```typescript
+// Shared types for component props (from @project/api)
+import type { AppRouter, inferRouterOutputs } from "@project/api";
+type RouterOutput = inferRouterOutputs<AppRouter>;
+export type Todo = RouterOutput["todo"]["list"][number];
+
+// Proxy-level types inside components (v11 — from @trpc/tanstack-react-query)
+import type { inferInput, inferOutput } from "@trpc/tanstack-react-query";
+type CreateInput = inferInput<typeof trpc.todo.create>;
+type ListOutput = inferOutput<typeof trpc.todo.list>;
+```
+
+Never define frontend types manually — derive them from the router so they stay in sync with schema changes.
+
 ## File Structure
 
 - `src/trpc.ts` — single `initTRPC.create()`, exports `router`, `publicProcedure`, `protectedProcedure`
