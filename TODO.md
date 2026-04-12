@@ -86,6 +86,7 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 - [x] **[template]** Integration tests — Vitest with tRPC callerFactory for direct procedure testing
 - [x] **[template]** Worktree-compatible testing — container name + port derived from directory MD5 hash (range 5400-5499)
 - [x] **[template]** Add `packageManager` field for strict pnpm version
+- [ ] **[recipe]** Parallel viewport testing — separate DB + server per viewport project for concurrent desktop/mobile runs (~6s savings at 50+ scenarios)
 - [ ] **[recipe]** Visual regression testing — Playwright screenshot comparison
 - [ ] **[recipe]** Load testing — k6 or Artillery for API performance baseline
 - [ ] **[recipe]** Contract testing — ensure tRPC client/server stay in sync across deploys

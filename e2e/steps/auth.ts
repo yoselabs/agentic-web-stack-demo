@@ -85,7 +85,7 @@ when(
 
 when("I submit the form", async ({ page }) => {
   await page.locator('button[type="submit"]').click();
-  await page.waitForTimeout(2000);
+  await page.waitForLoadState("networkidle");
 });
 
 when("I navigate to {string}", async ({ page }, path: string) => {
@@ -104,7 +104,7 @@ when("I click {string}", async ({ page }, text: string) => {
     }
   }
   await btn.click();
-  await page.waitForTimeout(2000);
+  await page.waitForLoadState("networkidle");
 });
 
 then("I should be on the dashboard", async ({ page }) => {

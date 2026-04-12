@@ -19,7 +19,7 @@ when("I toggle the todo {string}", async ({ page }, title: string) => {
 when("I delete the todo {string}", async ({ page }, title: string) => {
   const todoRow = page.locator("li", { hasText: title });
   await todoRow.getByRole("button", { name: "Delete" }).click();
-  await page.waitForTimeout(500);
+  await todoRow.waitFor({ state: "detached", timeout: 5000 });
 });
 
 when("I sign out and sign in as {string}", async ({ page }, email: string) => {
