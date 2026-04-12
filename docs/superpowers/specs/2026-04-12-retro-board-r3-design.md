@@ -30,7 +30,7 @@ Identical to REQUIREMENTS.md. Summary:
 | board.close | mutation | protected | Owner only, NOT_FOUND for others |
 | card.create | mutation | protected | Open boards only, text min 1 max 500 |
 | card.delete | mutation | protected | Card owner only, open boards only |
-| vote.toggle | mutation | protected | One per user per card, toggle on/off |
+| vote.toggle | mutation | protected | One per user per card, open boards only, toggle on/off |
 
 All authorization failures: `TRPCError({ code: "NOT_FOUND" })`.
 
@@ -44,9 +44,13 @@ All authorization failures: `TRPCError({ code: "NOT_FOUND" })`.
 
 ### UI Behavior
 
-- Optimistic updates: card delete, vote toggle (with rollback)
+- Optimistic updates: card create, card delete, vote toggle — instant UI with rollback on error
 - Closed boards: inputs hidden, votes disabled, "Closed" badge
 - Loading/not-found states: spinner, "Board not found" for missing/unauthorized
+
+### Enum Convention
+
+Enum values use Prisma convention (SCREAMING_SNAKE_CASE: `OPEN`, `CLOSED`, `WENT_WELL`, `TO_IMPROVE`, `ACTION_ITEM`). UI display maps to human-readable labels ("Open", "Closed", "Went Well", etc.).
 
 ### BDD Scenarios (8)
 
@@ -73,8 +77,8 @@ All authorization failures: `TRPCError({ code: "NOT_FOUND" })`.
 
 Orchestrator (opus) handles:
 - `make db-push` after dispatch 1
-- Route tree regeneration + `as string` cleanup between dispatches 2 and 3
 - `make check` after each dispatch
+- Route tree regeneration + `as string` cleanup after dispatch 3 (route files must exist before regen)
 - `make test` after dispatch 4
 - Final quality gate
 
@@ -104,5 +108,5 @@ Every dispatch includes full file contents in the plan. Subagents paste and adju
 
 - `make check` passes (13/13 lint + typecheck)
 - `make test` passes (all BDD scenarios green, desktop + mobile)
-- 5 subagent dispatches (stretch goal)
-- Estimated cost < R2's $11-17
+- <= 5 subagent dispatches (4 is better than 5)
+- Estimated cost < R2's $11-17 (experiment metric)
