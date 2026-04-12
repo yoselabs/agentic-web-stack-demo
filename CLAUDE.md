@@ -28,6 +28,19 @@ Each directory with a CLAUDE.md has area-specific guidance. Read it before worki
 Pre-commit hooks run `agent-harness fix` then `agent-harness lint` automatically.
 Never truncate lint or test output — read the full error.
 
+## Development Workflow (BDD-first)
+
+When adding features, write the Gherkin spec BEFORE implementation:
+
+1. **Write Gherkin feature file** — define the behavior contract (will fail)
+2. **Write step definitions** — implement test helpers
+3. **Implement backend** — tRPC routes with unit/integration TDD (Vitest)
+4. **Implement frontend** — UI components
+5. **Run BDD tests** — watch them go green (`make test`)
+6. **Quality gate** — `make check` must pass before claiming done
+
+The Gherkin spec is the source of truth for "what does done look like." Never save BDD tests for last.
+
 ## Package Naming
 
 All workspace packages use `@project/*` prefix (e.g., `@project/api`, `@project/db`).
