@@ -14,6 +14,7 @@ export default defineConfig({
   globalSetup: "./global-setup.ts",
   timeout: 30_000,
   retries: 0,
+  fullyParallel: true,
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",

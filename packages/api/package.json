@@ -15,8 +15,9 @@
     }
   },
   "dependencies": {
-    "@trpc/server": "^11.0.0",
     "@project/auth": "workspace:*",
-    "@project/db": "workspace:*"
+    "@project/db": "workspace:*",
+    "@trpc/server": "^11.0.0",
+    "zod": "^3.25.76"
   }
 }

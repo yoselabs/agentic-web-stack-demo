@@ -35,4 +35,4 @@ Feature: Authentication
     Given I am signed in as "signout@example.com"
     And I am on the dashboard
     When I click "Sign Out"
-    Then I should be on the home page
+    Then I should be signed out
