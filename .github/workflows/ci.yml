@@ -22,7 +22,7 @@ jobs:
       - run: pnpm -w run typecheck
 
   test:
-    name: BDD Tests
+    name: Integration & BDD Tests
     runs-on: ubuntu-latest
     needs: check
     services:
@@ -42,8 +42,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5433/agentic_web_stack_test
       BETTER_AUTH_SECRET: test-secret-key-for-ci-tests-only-32chars
-      BETTER_AUTH_URL: http://localhost:3001
-      CORS_ORIGIN: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:3101
+      CORS_ORIGIN: http://localhost:3100
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -53,5 +53,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @project/db push
+      - run: pnpm --filter @project/api test
       - run: pnpm exec playwright install chromium --with-deps
       - run: cd e2e && pnpm exec bddgen && pnpm exec playwright test
