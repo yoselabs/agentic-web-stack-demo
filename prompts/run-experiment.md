@@ -34,22 +34,47 @@ Main stays in sync with the template. Scaffolding files (HANDOVER.md, REQUIREMEN
 6. Create feature branch: `git checkout -b feat/retro-board-rN`
 7. Record start time
 
-### Phase 2: Planning
+### Phase 2: Brainstorming & Design
 
-1. Load `@tanstack/intent` skills: `pnpm exec @tanstack/intent list` — read relevant SKILL.md files BEFORE writing the plan
+Follow the full `superpowers:brainstorming` process:
+
+1. Explore project context (read CLAUDE.md files, existing patterns, recent commits)
+2. Ask clarifying questions (one at a time, multiple choice preferred)
+3. Propose 2-3 approaches with trade-offs and recommendation
+4. Present design section-by-section, get user approval after each
+5. Write design doc to `docs/superpowers/specs/YYYY-MM-DD-retro-board-rN-design.md`, commit
+6. Run spec self-review (placeholders, contradictions, ambiguity, scope)
+7. Request code review on the spec via `superpowers:requesting-code-review`
+8. Fix any issues found, get user sign-off on final spec
+
+Even though the requirements are identical across rounds, the brainstorming validates approach changes (batching strategy, model selection, etc.) and catches spec drift.
+
+### Phase 3: Planning
+
+1. Load `@tanstack/intent` skills if available: `pnpm exec @tanstack/intent list`
 2. Read all CLAUDE.md files in the project (they may have been updated)
-3. Use `superpowers:writing-plans` to write a fresh plan (don't copy prior plans)
+3. Use `superpowers:writing-plans` to write a fresh plan with **complete code in every step**
 4. Save plan to `docs/superpowers/plans/YYYY-MM-DD-retro-board-rN.md`
+5. Plan self-review: spec coverage, placeholder scan, type consistency
+6. Get user approval before execution
 
-### Phase 3: Execution
+### Phase 4: Execution
 
-1. Use `superpowers:subagent-driven-development` to execute the plan
-2. Model strategy: sonnet for implementation, sonnet for reviews, opus for orchestration
-3. Batch independent tasks where possible (e.g., tRPC routers that share router.ts → one subagent)
-4. After creating route files, regenerate the route tree (`make dev` briefly then kill)
-5. Clean up temporary `as string` casts once all routes exist in the tree
-6. Run `make check` after each task group
-7. Run `make test` after all code is written — fix any BDD test issues
+Use `superpowers:subagent-driven-development` to execute the plan:
+
+1. Create feature branch: `git checkout -b feat/retro-board-rN`
+2. Fresh subagent per task (sonnet for implementation, opus for orchestration)
+3. After each implementation task:
+   - Dispatch spec compliance reviewer (verify code matches plan)
+   - Dispatch code quality reviewer (verify code is well-built)
+   - Fix any issues found before moving to next task
+4. Orchestrator handles between-task work:
+   - Route tree regeneration (`make dev` briefly then kill)
+   - `as string` cast cleanup once all routes exist
+   - `make check` after each task group
+   - Badge/component installation if missing from template
+5. After all tasks: run `make test`, fix BDD locator issues if needed
+6. Use `superpowers:finishing-a-development-branch` for final review
 
 ### Phase 4: Measurement
 
