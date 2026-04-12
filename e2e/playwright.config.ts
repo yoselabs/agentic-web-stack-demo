@@ -3,13 +3,22 @@ import { defineBddConfig } from "playwright-bdd";
 
 import { TEST_DATABASE_URL } from "./test-env.js";
 
-const testDir = defineBddConfig({
+// Desktop runs all features except @mobile-tagged ones
+const desktopTestDir = defineBddConfig({
   features: "features/**/*.feature",
   steps: "steps/**/*.ts",
+  outputDir: ".features-gen/desktop",
+  tags: "not @mobile",
+});
+
+// Mobile runs all features (including @mobile-specific ones)
+const mobileTestDir = defineBddConfig({
+  features: "features/**/*.feature",
+  steps: "steps/**/*.ts",
+  outputDir: ".features-gen/mobile",
 });
 
 export default defineConfig({
-  testDir,
   globalSetup: "./global-setup.ts",
   timeout: 30_000,
   retries: 0,
@@ -19,9 +28,31 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
+    // Desktop viewport (default)
     {
-      name: "chromium",
+      name: "desktop",
+      testDir: desktopTestDir,
       use: { browserName: "chromium" },
+    },
+    // Reset DB between viewport runs so each starts with clean state
+    // Depends on desktop → runs after desktop finishes
+    {
+      name: "mobile-setup",
+      testMatch: /db-reset\.setup\.ts/,
+      dependencies: ["desktop"],
+    },
+    // Mobile viewport (iPhone 14 dimensions, chromium)
+    // Depends on mobile-setup → runs after DB reset
+    {
+      name: "mobile",
+      testDir: mobileTestDir,
+      use: {
+        browserName: "chromium",
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+      dependencies: ["mobile-setup"],
     },
   ],
   webServer: [

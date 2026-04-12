@@ -99,7 +99,7 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 - [x] **[template]** Layout components — Logo, Navbar (desktop + mobile Sheet hamburger), UserBlock extracted from `_authenticated` layout
 - [ ] **[recipe]** Dark mode — Tailwind dark mode with theme toggle + localStorage persistence
 - [ ] **[recipe]** Form library — TanStack Form or react-hook-form for complex forms with validation
-- [ ] **[template]** Responsive design — viewport meta, fluid layouts, mobile breakpoint testing, Playwright viewport assertions
+- [x] **[template]** Responsive design — mobile viewport (390×844) BDD tests, hamburger-aware step helpers, DB reset between viewports, `@mobile` tag for mobile-only scenarios
 - [ ] **[recipe]** Drag and drop — `@dnd-kit/core` for sortable lists, kanban boards, tree reordering (too app-specific for template)
 
 ## AI Features

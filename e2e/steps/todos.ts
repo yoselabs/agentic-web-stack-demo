@@ -23,8 +23,16 @@ when("I delete the todo {string}", async ({ page }, title: string) => {
 });
 
 when("I sign out and sign in as {string}", async ({ page }, email: string) => {
-  // Sign out
-  await page.getByRole("button", { name: "Sign Out" }).click();
+  // Sign out — on mobile, open hamburger menu first
+  const signOutBtn = page.getByRole("button", { name: "Sign Out" });
+  if (!(await signOutBtn.isVisible())) {
+    const hamburger = page.getByRole("button", { name: "Toggle menu" });
+    if (await hamburger.isVisible()) {
+      await hamburger.click();
+      await signOutBtn.waitFor({ state: "visible", timeout: 3000 });
+    }
+  }
+  await signOutBtn.click();
   await page.waitForURL("**/", { timeout: 5000 });
 
   // Sign up as new user

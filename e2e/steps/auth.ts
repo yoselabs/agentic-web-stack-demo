@@ -94,7 +94,16 @@ when("I navigate to {string}", async ({ page }, path: string) => {
 });
 
 when("I click {string}", async ({ page }, text: string) => {
-  await page.getByRole("button", { name: text }).click();
+  const btn = page.getByRole("button", { name: text });
+  // On mobile, buttons in the navbar may be hidden behind the hamburger menu
+  if (!(await btn.isVisible())) {
+    const hamburger = page.getByRole("button", { name: "Toggle menu" });
+    if (await hamburger.isVisible()) {
+      await hamburger.click();
+      await btn.waitFor({ state: "visible", timeout: 3000 });
+    }
+  }
+  await btn.click();
   await page.waitForTimeout(2000);
 });
 
@@ -121,7 +130,21 @@ then("I should be signed out", async ({ page }) => {
 });
 
 then("I should see {string}", async ({ page }, text: string) => {
-  await expect(page.getByText(text).first()).toBeVisible({ timeout: 5000 });
+  // On mobile, text in the navbar is hidden behind the hamburger menu.
+  // Check if any visible instance exists; if not, try opening the menu.
+  const visible = page
+    .getByText(text, { exact: false })
+    .locator("visible=true");
+  if ((await visible.count()) === 0) {
+    const hamburger = page.getByRole("button", { name: "Toggle menu" });
+    if (await hamburger.isVisible()) {
+      await hamburger.click();
+      await page.waitForTimeout(400);
+    }
+  }
+  await expect(
+    page.getByText(text, { exact: false }).locator("visible=true").first(),
+  ).toBeVisible({ timeout: 5000 });
 });
 
 then("I should see an error message", async ({ page }) => {
