@@ -87,13 +87,16 @@ Create a new `EXPERIMENT-R2.yaml` with:
 5. **Optimistic update example** — reference pattern in `apps/web/CLAUDE.md`
 6. **JSX `//` lint gotcha** — note about `noCommentText` rule
 
-## Workflow
+## Workflow — Full Superpowers Process
 
-Use the same skills/approach as Round 1:
-1. `superpowers:brainstorming` — skip (requirements already defined, just confirm understanding)
-2. `superpowers:writing-plans` — write a fresh plan (don't copy Round 1's plan — the template may have changed)
-3. `superpowers:subagent-driven-development` — execute plan with fresh subagents
-4. Compare results
+Follow the superpowers skill chain exactly. Each step is mandatory:
+
+1. **`superpowers:brainstorming`** — Explore context, ask clarifying questions, propose 2-3 approaches, present design, write spec doc, get spec review + user approval
+2. **`superpowers:requesting-code-review`** — Review the spec before planning
+3. **`superpowers:writing-plans`** — Write a fresh plan with complete code in every step (don't copy prior plans — the template may have changed)
+4. **`superpowers:subagent-driven-development`** — Execute plan: fresh subagent per task, spec compliance review after each, code quality review after each
+5. **`superpowers:finishing-a-development-branch`** — Final review, decide integration strategy
+6. Compare results against all prior rounds
 
 ## Branch Strategy
 
@@ -124,7 +127,8 @@ Do NOT copy code from prior rounds. Let the subagents build fresh — that's the
 
 ## Completed Rounds
 
-| Round | Branch | Tests | Subagent Dispatches | Tokens | Cost | Wall Time |
-|-------|--------|-------|---------------------|--------|------|-----------|
-| 1 | `feat/retro-board` | 18/18 | 12 | ~317K | ~$15-23 | 22 min |
-| 2 | `feat/retro-board-r2` | 41/41 | 8 | ~182K | ~$11-17 | 10 min |
+| Round | Branch | Tests | Impl Dispatches | Total Dispatches | Tokens | Cost | Wall Time |
+|-------|--------|-------|-----------------|------------------|--------|------|-----------|
+| 1 | `feat/retro-board` | 18/18 | 10 | 12 | ~317K | ~$15-23 | 22 min |
+| 2 | `feat/retro-board-r2` | 41/41 | 7 | 8 | ~182K | ~$11-17 | 10 min |
+| 3 | `feat/retro-board-r3` | 41/41 | 4 | 9 | ~236K | ~$14-21 | 8 min |
