@@ -26,6 +26,7 @@ packages/api/src/
 
 **Services** (domain logic layer):
 - Pure functions that accept `PrismaClient | Prisma.TransactionClient` as first argument
+- Never receive tRPC context (`ctx`) — routers extract needed fields (e.g., `ctx.session.user.id`) and pass them as plain arguments
 - Never start transactions — the caller owns the boundary
 - Handle domain rules, data transformations, complex queries
 
@@ -64,10 +65,11 @@ export async function reorderTodos(
   ids: string[],
 ) {
   const pairs = ids.map((id, i) => Prisma.sql`(${id}::text, ${i}::integer)`);
+  // Note: verify Prisma.join separator behavior against current Prisma version
   await db.$executeRaw`
     UPDATE "Todo" AS t
     SET "position" = d.new_position
-    FROM (VALUES ${Prisma.join(pairs, ',')}) AS d(id, new_position)
+    FROM (VALUES ${Prisma.join(pairs)}) AS d(id, new_position)
     WHERE t.id = d.id AND t."userId" = ${userId}
   `;
 }
@@ -103,13 +105,17 @@ apps/web/src/
 **Hooks** (`features/*/use-*.ts`):
 - Receive `trpc` and `queryClient` as parameters (can't call `Route.useRouteContext()` from outside route)
 - Own all queries, mutations, optimistic updates, event handlers
-- Extract when route has >30% orchestration logic
+- Extract when route has 2+ mutations or the hook return object would have 5+ properties
 - Live in the feature folder per FSD rules
 
 **Feature components:**
 - Stateless, callback-driven (receive `onComplete`, `onDelete`, etc.)
 - No tRPC calls — all data comes from props
 - Live in `features/[domain]/`
+
+**Shared layer** (`shared/`):
+- Cross-cutting utilities, non-domain helpers, constants (e.g., `shared/lib/format-date.ts`)
+- Does not exist yet in the template — create when needed
 
 **FSD import rules:**
 ```
@@ -191,6 +197,10 @@ Each task:
 - Run `make test` → BDD green, no regressions on prior features
 - Checkpoint: **BDD GREEN ✓**
 
+### Feedback Loops
+
+If a Phase 3 task reveals an API bug (wrong response shape, missing field, incorrect business logic), fix it in the same task: add a service/router test for the bug, fix the service, then continue with UI. Do not create a separate Phase 2 task retroactively. The Phase 3 subagent has full context of what's broken and is best positioned to fix it.
+
 ### Cross-domain Independence
 
 When features DON'T share a domain (e.g., "Boards" and "User Settings"), run the full Phase 0–3 cycle for one domain group, then the other. No interleaving.
@@ -213,7 +223,7 @@ Files:
 Steps:
   - Write scenarios covering all features in the domain
   - Focus on behavior, not UI structure
-  - Use existing step patterns (getByRole, getByLabel, getByPlaceholder)
+  - Write Given/When/Then steps using role-based and label-based language (these will map to getByRole, getByLabel at step definition time)
   - No step definitions yet
 ```
 
@@ -236,7 +246,7 @@ Files:
   - Create: packages/api/src/services/[domain].ts
   - Create: packages/api/src/routers/[model].ts (one per model if needed)
   - Modify: packages/api/src/router.ts (mount new routers)
-  - Create: packages/api/src/__tests__/services/[domain].test.ts
+  - Create: packages/api/src/services/__tests__/[domain].test.ts
   - Create/Modify: packages/api/src/__tests__/[domain].test.ts
 Steps:
   - Write service unit tests (TDD — tests first)
@@ -282,6 +292,35 @@ Steps:
 - Step definitions written before UI existed had to be rewritten — confirming "steps after UI" is correct
 - Mobile test suite validated responsive behavior automatically with no extra effort
 
+## Anti-patterns
+
+- Do not put business logic in routers — routers are wiring only
+- Do not call `db.$transaction` inside a service — the router owns the boundary
+- Do not pass tRPC `ctx` to services — extract fields and pass as plain arguments
+- Do not import from `features/A/` inside `features/B/` — shared logic goes in `shared/`
+- Do not write step definitions before the UI exists — they'll reference wrong selectors
+- Do not batch Phase 3 tasks across features — each must go green independently
+- Do not loop Prisma queries for related data — use `include`/`select`
+
+## Known Gaps in Current Code
+
+The existing todo feature does NOT follow these patterns yet. It is the first refactoring target:
+
+- `routers/todo.ts` has business logic inline (no services layer)
+- `create` and `complete` mutations have race conditions (no transaction, no `SELECT FOR UPDATE`)
+- `reorder` uses N individual updates instead of VALUES+UPDATE
+- `routes/_authenticated/todos.tsx` has orchestration logic inline (no hook extraction)
+- No service unit tests exist (only router integration tests)
+
+## Template Files to Update
+
+When implementing this spec, these existing files need updates to reference the new patterns:
+
+- `packages/api/CLAUDE.md` — rewrite "Adding a New Router" example to show router-delegates-to-service pattern
+- `apps/web/CLAUDE.md` — add hook extraction pattern, update route example to show thin shell
+- Root `CLAUDE.md` — update "Development Workflow" section to reference this spec's phase structure
+- `e2e/CLAUDE.md` — add note about step definitions being written after UI (Phase 3)
+
 ## Supersedes
 
-This spec replaces the previous brainstorming handover at this same path. The open questions from that document (step definition timing, vertical vs horizontal) are now resolved.
+This spec rewrites the previous brainstorming content that occupied this document. The open questions from that version (step definition timing, vertical vs horizontal) are now resolved.
