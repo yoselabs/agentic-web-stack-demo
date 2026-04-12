@@ -1,4 +1,4 @@
-.PHONY: setup dev db db-push db-generate db-studio db-seed check typecheck lint fix test test-ui test-unit clean
+.PHONY: setup dev db db-push db-generate db-studio db-seed check typecheck lint fix test test-ui test-unit clean routes
 
 # Zero-conf setup: clone → make setup → make dev
 setup:
@@ -9,15 +9,18 @@ setup:
 	@echo "Waiting for Postgres..."
 	@until docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; do sleep 1; done
 	pnpm -w run db:push
-	@echo "Generating route tree..."
-	@cd apps/web && pnpm exec vite dev --port 0 & VIT_PID=$$!; \
-		while [ ! -f src/routeTree.gen.ts ]; do sleep 0.5; done; \
-		kill $$VIT_PID 2>/dev/null; wait $$VIT_PID 2>/dev/null; true
+	$(MAKE) routes
 	prek install
 	@echo "✓ Ready. Run 'make dev' to start."
 
+# Regenerate route tree (no dev server needed)
+routes:
+	@echo "Generating route tree..."
+	@pnpm exec tsx scripts/generate-routes.ts
+
 # Start both web and server
 dev:
+	@pnpm exec tsx scripts/kill-ports.ts 3000 3001
 	pnpm -w run dev
 
 # Database
@@ -47,8 +50,10 @@ test-unit:
 
 # BDD Tests (uses separate test database on port 5433)
 test:
+	@pnpm exec tsx scripts/kill-ports.ts 3100 3101
 	cd e2e && pnpm exec bddgen && pnpm exec playwright test
 test-ui:
+	@pnpm exec tsx scripts/kill-ports.ts 3100 3101
 	cd e2e && pnpm exec bddgen && pnpm exec playwright test --ui
 
 # Cleanup
