@@ -115,4 +115,16 @@ e2e/features/boards.feature              — BDD scenarios
 e2e/steps/boards.ts                      — Step definitions
 ```
 
-Do NOT copy code from Round 1. Let the subagents build fresh — that's the point of the comparison.
+Do NOT copy code from prior rounds. Let the subagents build fresh — that's the point of the comparison.
+
+## Reusable Prompts
+
+- `prompts/run-experiment.md` — Full experiment workflow. Paste into a new session to run the next round.
+- `prompts/update-template.md` — Apply experiment findings back to the template repo.
+
+## Completed Rounds
+
+| Round | Branch | Tests | Subagent Dispatches | Tokens | Cost | Wall Time |
+|-------|--------|-------|---------------------|--------|------|-----------|
+| 1 | `feat/retro-board` | 18/18 | 12 | ~317K | ~$15-23 | 22 min |
+| 2 | `feat/retro-board-r2` | 41/41 | 8 | ~182K | ~$11-17 | 10 min |
