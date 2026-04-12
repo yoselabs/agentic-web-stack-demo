@@ -4,6 +4,16 @@ import { db } from "@project/db";
 async function main() {
   console.log("Seeding database...");
 
+  // Check if already seeded
+  const existing = await db.user.findFirst({
+    where: { email: "demo@example.com" },
+  });
+
+  if (existing) {
+    console.log("Already seeded (demo@example.com exists), skipping.");
+    return;
+  }
+
   // Create demo user via Better-Auth (handles password hashing)
   const { user } = await auth.api.signUpEmail({
     body: {
