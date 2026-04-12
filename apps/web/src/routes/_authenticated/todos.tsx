@@ -1,23 +1,15 @@
-import {
-  DndContext,
-  type DragEndEvent,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Button } from "@project/ui/components/button";
 import { Input } from "@project/ui/components/input";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
 import { CompletedTodoItem } from "#/features/todo/completed-todo-item";
 import { SortableTodoItem } from "#/features/todo/sortable-todo-item";
+import { useTodos } from "#/features/todo/use-todos";
 
 export const Route = createFileRoute("/_authenticated/todos")({
   component: TodosPage,
@@ -26,84 +18,18 @@ export const Route = createFileRoute("/_authenticated/todos")({
 function TodosPage() {
   const { trpc } = Route.useRouteContext();
   const queryClient = useQueryClient();
-  const [newTitle, setNewTitle] = useState("");
-
-  const todos = useQuery(trpc.todo.list.queryOptions());
-
-  const activeTodos = todos.data?.filter((t) => !t.completed) ?? [];
-  const completedTodos = todos.data?.filter((t) => t.completed) ?? [];
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  );
-
-  const createTodo = useMutation(
-    trpc.todo.create.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(trpc.todo.list.queryFilter());
-        setNewTitle("");
-        toast.success("Todo added");
-      },
-      onError: () => toast.error("Failed to add todo"),
-    }),
-  );
-
-  const completeTodo = useMutation(
-    trpc.todo.complete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(trpc.todo.list.queryFilter());
-      },
-      onError: () => toast.error("Failed to update todo"),
-    }),
-  );
-
-  const deleteTodo = useMutation(
-    trpc.todo.delete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(trpc.todo.list.queryFilter());
-        toast.success("Todo deleted");
-      },
-      onError: () => toast.error("Failed to delete todo"),
-    }),
-  );
-
-  const reorderTodos = useMutation(
-    trpc.todo.reorder.mutationOptions({
-      onError: () => {
-        queryClient.invalidateQueries(trpc.todo.list.queryFilter());
-        toast.error("Failed to reorder");
-      },
-    }),
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-    createTodo.mutate({ title: newTitle.trim() });
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = activeTodos.findIndex((t) => t.id === active.id);
-    const newIndex = activeTodos.findIndex((t) => t.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    // Optimistic reorder
-    const reordered = [...activeTodos];
-    const [moved] = reordered.splice(oldIndex, 1);
-    reordered.splice(newIndex, 0, moved);
-
-    // Update cache optimistically
-    queryClient.setQueryData(trpc.todo.list.queryFilter().queryKey, [
-      ...reordered,
-      ...completedTodos,
-    ]);
-
-    // Persist to server
-    reorderTodos.mutate({ ids: reordered.map((t) => t.id) });
-  };
+  const {
+    newTitle,
+    setNewTitle,
+    todos,
+    activeTodos,
+    completedTodos,
+    sensors,
+    completeTodo,
+    deleteTodo,
+    handleSubmit,
+    handleDragEnd,
+  } = useTodos(trpc, queryClient);
 
   return (
     <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
