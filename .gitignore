@@ -9,6 +9,7 @@ dist/
 # Generated
 routeTree.gen.ts
 *.tsbuildinfo
+.tanstack/
 
 # Environment
 .env

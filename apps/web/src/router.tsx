@@ -31,6 +31,9 @@ const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: `${import.meta.env.VITE_API_URL ?? "http://localhost:3001"}/trpc`,
+      fetch(url, options) {
+        return fetch(url, { ...options, credentials: "include" });
+      },
     }),
   ],
 });

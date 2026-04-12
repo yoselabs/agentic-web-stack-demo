@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "@project/api": "workspace:*",
+    "@project/auth": "workspace:*",
     "@project/db": "workspace:*",
     "@project/env": "workspace:*",
     "@hono/node-server": "^1.13.0",
