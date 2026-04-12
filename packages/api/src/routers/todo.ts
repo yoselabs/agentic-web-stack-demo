@@ -36,6 +36,8 @@ export const todoRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(({ ctx, input }) => {
-      return deleteTodo(ctx.db, ctx.session.user.id, input.id);
+      return ctx.db.$transaction((tx) =>
+        deleteTodo(tx, ctx.session.user.id, input.id),
+      );
     }),
 });
