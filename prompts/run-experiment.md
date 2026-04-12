@@ -6,24 +6,33 @@ The template repo (`agentic-eng/agentic-web-stack`) may have been updated with f
 
 Don't copy code from prior rounds. Let subagents build fresh. That's the whole point.
 
+## Repo Structure
+
+- `main` = template (`agentic-eng/agentic-web-stack`) + experiment scaffolding (HANDOVER, REQUIREMENTS, prompts/)
+- `feat/retro-board-rN` = each round's implementation (one branch per round, never deleted)
+- Remote `template` points to `agentic-eng/agentic-web-stack`
+- Remote `origin` points to `agentic-eng/agentic-web-stack-demo`
+
+Main stays in sync with the template. Scaffolding files (HANDOVER.md, REQUIREMENTS.md, prompts/) don't exist in the template, so merges are clean.
+
 ## Workflow
 
 ### Phase 1: Setup
 
 1. Read `HANDOVER.md` and `REQUIREMENTS.md`
-2. Read prior `EXPERIMENT*.yaml` files for baseline numbers
-3. Pull template updates:
+2. Read prior `EXPERIMENT*.yaml` files (on prior round branches) for baseline numbers
+3. Pull template updates into main:
    ```bash
+   git checkout main
    git fetch template
-   # If merge is clean:
-   git merge template/main --allow-unrelated-histories
-   # If merge is messy, reset main to template:
-   git reset --hard template/main
-   # Then restore experiment files from prior branches
+   git merge template/main
+   # Scaffolding files don't conflict — they only exist in our repo
+   # If somehow messy: git reset --hard template/main, then cherry-pick scaffolding commits
    ```
-4. Run `make setup && make check` — verify clean baseline
-5. Create feature branch: `feat/retro-board-rN`
-6. Record start time
+4. Push updated main: `git push origin main`
+5. Run `make setup && make check` — verify clean baseline
+6. Create feature branch: `git checkout -b feat/retro-board-rN`
+7. Record start time
 
 ### Phase 2: Planning
 
