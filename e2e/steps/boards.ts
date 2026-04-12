@@ -27,12 +27,12 @@ given("I have a board {string}", async ({ page }, title: string) => {
 when(
   "I add a card {string} in {string}",
   async ({ page }, text: string, columnTitle: string) => {
-    // Find the column by its h2 heading, then scope to the parent div
+    // Find the column heading, then scope to its parent div (direct parent)
     const columnHeading = page.getByRole("heading", {
       name: columnTitle,
       level: 2,
     });
-    const column = page.locator("div", { has: columnHeading }).first();
+    const column = columnHeading.locator("..");
 
     await column.getByPlaceholder("Add a card...").fill(text);
     await column.getByRole("button", { name: "Add" }).click();
@@ -44,7 +44,7 @@ when(
 
 when("I vote on the card {string}", async ({ page }, text: string) => {
   // Find the card containing the text, then click the vote button (first button)
-  const cardEl = page.locator("[data-slot='card']", { hasText: text }).first();
+  const cardEl = page.locator(".rounded-xl.border", { hasText: text }).first();
   const voteBtn = cardEl.locator("button").first();
   await voteBtn.click();
   await page.waitForLoadState("networkidle");
@@ -56,26 +56,34 @@ when("I close the board", async ({ page }) => {
 });
 
 when("I delete the card {string}", async ({ page }, text: string) => {
-  const cardEl = page.locator("[data-slot='card']", { hasText: text }).first();
-  // Delete button is the last button in the card (Trash icon)
-  const deleteBtn = cardEl.locator("button").last();
+  // Find the paragraph with card text, navigate up to the card container, find delete button
+  const cardText = page.getByText(text, { exact: true });
+  await expect(cardText).toBeVisible({ timeout: 5000 });
+  // The card structure is: div.rounded-xl > div.p-3 > p (text) + div (buttons)
+  // Navigate up to the card content div, then find the last button (Trash)
+  const cardContent = cardText.locator("..");
+  const deleteBtn = cardContent.locator("button").last();
   await deleteBtn.click();
-  // Wait for removal
-  await expect(page.getByText(text)).not.toBeVisible({ timeout: 5000 });
+  // Wait for optimistic removal
+  await expect(page.getByText(text, { exact: true })).not.toBeVisible({
+    timeout: 5000,
+  });
 });
 
 when("I navigate to the last board URL", async ({ page }) => {
   if (!lastBoardUrl) throw new Error("No board URL stored");
   const boardPath = new URL(lastBoardUrl).pathname;
   await page.goto(boardPath);
-  await page.waitForLoadState("networkidle");
+  // Wait for React Query retries to complete (3 retries with backoff ~7s)
+  // then the "Board not found" state renders
+  await page.waitForTimeout(10000);
 });
 
 then(
   "the card {string} should show {int} vote(s)",
   async ({ page }, text: string, count: number) => {
     const cardEl = page
-      .locator("[data-slot='card']", { hasText: text })
+      .locator(".rounded-xl.border", { hasText: text })
       .first();
     await expect(
       cardEl.getByRole("button", { name: String(count) }),

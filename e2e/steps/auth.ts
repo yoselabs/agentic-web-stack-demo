@@ -94,20 +94,19 @@ when("I navigate to {string}", async ({ page }, path: string) => {
 });
 
 when("I click {string}", async ({ page }, text: string) => {
-  let btn = page.getByRole("button", { name: text });
-  // Fall back to link role (e.g. <Link asChild> rendered as <a> with Button styles)
-  if (!(await btn.count())) {
-    btn = page.getByRole("link", { name: text });
-  }
-  // On mobile, buttons in the navbar may be hidden behind the hamburger menu
-  if (!(await btn.isVisible())) {
+  // Try button first, then link. On mobile, open hamburger if element is hidden.
+  const btn = page.getByRole("button", { name: text });
+  const link = page.getByRole("link", { name: text });
+  const target =
+    (await btn.count()) > 0 ? btn : (await link.count()) > 0 ? link : btn; // fallback to btn for error message
+  if (!(await target.isVisible())) {
     const hamburger = page.getByRole("button", { name: "Toggle menu" });
     if (await hamburger.isVisible()) {
       await hamburger.click();
-      await btn.waitFor({ state: "visible", timeout: 3000 });
+      await target.waitFor({ state: "visible", timeout: 3000 });
     }
   }
-  await btn.click();
+  await target.click();
   await page.waitForLoadState("networkidle");
 });
 
