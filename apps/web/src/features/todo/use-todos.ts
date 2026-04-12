@@ -77,7 +77,7 @@ export function useTodos(
     createTodo.mutate({ title: newTitle.trim() });
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -94,7 +94,7 @@ export function useTodos(
     const currentCompleted = currentData?.filter((t) => t.completed) ?? [];
 
     // Cancel any in-flight list queries so they don't overwrite our optimistic update
-    queryClient.cancelQueries(trpc.todo.list.queryFilter());
+    await queryClient.cancelQueries(trpc.todo.list.queryFilter());
 
     // flushSync forces React to re-render synchronously so the DOM order
     // matches before @dnd-kit resets CSS transforms (prevents item flash)

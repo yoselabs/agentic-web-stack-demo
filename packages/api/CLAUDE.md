@@ -27,7 +27,7 @@ __tests__/todo.test.ts       ← Router integration tests (createCaller, auth gu
 Create service `src/services/post.ts`:
 
 ```typescript
-import { type PrismaClient, Prisma } from "@project/db";
+import { Prisma, type PrismaClient } from "@project/db";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

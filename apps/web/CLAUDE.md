@@ -120,7 +120,7 @@ The hook receives `trpc` and `queryClient` as parameters because `Route.useRoute
 
 ### Optimistic Updates
 
-For instant UI feedback before the server confirms, see the drag-and-drop reorder handler in `src/routes/_authenticated/todos.tsx` — it uses `queryClient.setQueryData` to update the cache immediately, with `onError` invalidation as fallback.
+For instant UI feedback before the server confirms, see the drag-and-drop reorder handler in `src/features/todo/use-todos.ts` (`handleDragEnd`) — it uses `queryClient.setQueryData` to update the cache immediately, with `onError` invalidation as fallback.
 
 When using `onMutate` callbacks with tRPC, define explicit types for the data shape — tRPC's type inference breaks on the callback parameter:
 

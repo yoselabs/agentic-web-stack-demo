@@ -3,12 +3,13 @@
 ## Add a Feature (BDD-first workflow)
 
 1. **Write the Gherkin spec** in `features/<name>.feature` (Phase 0 — before any code)
-2. **Implement backend** — services + routers + Vitest (Phase 2)
-3. **Implement frontend** — hooks + components + routes (Phase 3)
-4. **Write step definitions** in `steps/<name>.ts` against real HTML (Phase 3)
-5. **Generate tests:** `pnpm exec bddgen` (generates `.features-gen/`)
-6. **Run:** `make test`
-7. **Verify:** `make check && make test`
+2. **Add Prisma schema** if needed — `make db-push` (Phase 1)
+3. **Implement backend** — services + routers + Vitest (Phase 2)
+4. **Implement frontend** — hooks + components + routes (Phase 3)
+5. **Write step definitions** in `steps/<name>.ts` against real HTML (Phase 3)
+6. **Generate tests:** `pnpm exec bddgen` (generates `.features-gen/`)
+7. **Run:** `make test`
+8. **Verify:** `make check && make test`
 
 Step definitions are written AFTER the UI exists so selectors reference real elements. The Gherkin spec (written first) is the behavior contract; step defs are the implementation detail.
 
