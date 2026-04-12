@@ -1,0 +1,258 @@
+experiment:
+  name: "Retro Board — Agentic Web Stack Stress Test (Round 2)"
+  date: "2026-04-12"
+  model: "claude-opus-4-6 (1M context)"
+  template_version: "Updated with Round 1 feedback fixes"
+  goal: >
+    Re-run Round 1 experiment on updated template to measure improvement.
+    Build same retro board feature from scratch with subagent-driven development.
+
+workflow:
+  phases:
+    - name: "Template Setup"
+      actions: "Reset main to template/main, verify clean baseline"
+      duration_min: ~3
+
+    - name: "Implementation Planning"
+      skills: ["superpowers:writing-plans"]
+      output: "docs/superpowers/plans/2026-04-12-retro-board-r2.md"
+      tasks: 10
+      notes: "User caught that @tanstack/intent skills weren't loaded before planning"
+
+    - name: "Subagent-Driven Execution"
+      skills: ["superpowers:subagent-driven-development"]
+      model_strategy: "sonnet for implementation, sonnet for spec review, opus for orchestration"
+
+results:
+  commits: 9
+  files_changed: 13
+  lines_added: 2096
+  lines_removed: 0
+
+  new_files:
+    - apps/web/src/routes/_authenticated/boards/$boardId.tsx
+    - apps/web/src/routes/_authenticated/boards/index.tsx
+    - apps/web/src/routes/_authenticated/boards/new.tsx
+    - e2e/features/boards.feature
+    - e2e/steps/boards.ts
+    - packages/api/src/routers/board.ts
+    - packages/api/src/routers/card.ts
+    - packages/api/src/routers/vote.ts
+    - packages/db/prisma/schema/board.prisma
+    - docs/superpowers/plans/2026-04-12-retro-board-r2.md
+
+  modified_files:
+    - apps/web/src/widgets/navbar.tsx
+    - packages/api/src/router.ts
+    - packages/db/prisma/schema/auth.prisma
+
+  quality_gates:
+    lint_checks: "13/13 passed"
+    typecheck: "passed"
+    bdd_tests: "41/41 passed (19 desktop + 21 mobile + 1 db-reset)"
+    test_time: "30.3s (7 parallel workers)"
+
+  stack_coverage:
+    prisma: "3 new models, 2 enums, relations, cascade delete, @@unique constraint"
+    trpc: "3 nested routers, 7 procedures, protectedProcedure + NOT_FOUND errors"
+    react_query: "optimistic mutations (delete/toggle) with rollback, invalidation"
+    tanstack_router: "parameterized route ($boardId), file-based routing, 3 new routes"
+    better_auth: "auth guards on all routes, session in tRPC context"
+    playwright_bdd: "8 Gherkin scenarios, shared + new step definitions, desktop + mobile"
+
+subagents:
+  dispatches:
+    - task: "Explore codebase (template)"
+      model: "opus"
+      role: "research"
+      tokens: ~20000
+      duration_ms: ~60000
+
+    - task: "Task 1: Prisma schema"
+      model: "sonnet"
+      role: "implementer"
+      tokens: 19940
+      duration_ms: 54466
+
+    - task: "Tasks 2-4: tRPC routers (batched)"
+      model: "sonnet"
+      role: "implementer"
+      tokens: 22847
+      duration_ms: 68254
+
+    - task: "Spec review: tRPC routers"
+      model: "sonnet"
+      role: "reviewer"
+      tokens: 18236
+      duration_ms: 19235
+
+    - task: "Task 5: Board list page"
+      model: "sonnet"
+      role: "implementer"
+      tokens: 22577
+      duration_ms: 94619
+      notes: "Got stuck on route tree regen, orchestrator finished manually"
+
+    - task: "Task 6: Create board page"
+      model: "sonnet"
+      role: "implementer"
+      tokens: 19399
+      duration_ms: 53514
+
+    - task: "Task 7: Board detail page"
+      model: "sonnet"
+      role: "implementer"
+      tokens: 32851
+      duration_ms: 146500
+
+    - task: "Tasks 8-9: BDD feature + steps"
+      model: "sonnet"
+      role: "implementer"
+      tokens: 25974
+      duration_ms: 83900
+
+  totals:
+    subagent_dispatches: 8
+    subagent_total_tokens: 181824
+    subagent_total_duration_ms: 580488
+    subagent_total_duration_min: 9.7
+    # Note: orchestrator (opus) tokens not included — estimated ~150K additional
+    # Total session tokens estimated: ~400K
+
+  model_distribution:
+    opus: 1  # explore
+    sonnet: 7  # all implementation + spec review
+
+cost_estimate:
+  note: >
+    Subagent tokens are total (input + output combined).
+    Orchestrator context grows over conversation.
+    These are rough estimates, not exact billing.
+  estimated_subagent_cost_usd: "~$3-5"
+  estimated_orchestrator_cost_usd: "~$8-12"
+  estimated_total_cost_usd: "~$11-17"
+
+# ==============================
+# ROUND 2 vs ROUND 1 COMPARISON
+# ==============================
+
+comparison:
+  summary: >
+    Round 2 completed faster with fewer subagent dispatches and tokens.
+    Updated template guidance (routers/ convention, route tree docs,
+    optimistic update examples) directly reduced friction. BDD tests
+    required fewer iterations to fix (2 runs vs Round 1's ~10x longer
+    BDD task).
+
+  metrics:
+    subagent_dispatches:
+      round_1: 12
+      round_2: 8
+      delta: "-33%"
+      notes: "Batched tRPC routers (3→1 dispatch), BDD feature+steps (2→1 dispatch)"
+
+    subagent_total_tokens:
+      round_1: 316728
+      round_2: 181824
+      delta: "-43%"
+      notes: "Fewer dispatches + better plan specificity = less exploration"
+
+    subagent_wall_time_min:
+      round_1: 22.1
+      round_2: 9.7
+      delta: "-56%"
+      notes: "BDD task went from 10min to 1.4min (no stale dev server debugging)"
+
+    estimated_cost_usd:
+      round_1: "~$15-23"
+      round_2: "~$11-17"
+      delta: "~-30%"
+
+    files_changed:
+      round_1: 14
+      round_2: 13
+      delta: "-1"
+      notes: "Same files minus _authenticated.tsx (no changes needed this time)"
+
+    lines_added:
+      round_1: 2304
+      round_2: 2096
+      delta: "-208 (-9%)"
+      notes: "Plan file included in R2 count; code volume very similar"
+
+    bdd_tests:
+      round_1: "18/18"
+      round_2: "41/41"
+      notes: "R2 runs both desktop AND mobile (template now has mobile tests)"
+
+    quality_gates:
+      round_1: "13/13"
+      round_2: "13/13"
+
+    template_gaps:
+      round_1: 0
+      round_2: 0
+
+  round_1_issues_fixed:
+    - issue: "Stale dev server warning"
+      fixed: true
+      evidence: "e2e/CLAUDE.md mentions separate test ports (3100/3101)"
+
+    - issue: "Route tree regeneration docs"
+      fixed: true
+      evidence: "apps/web/CLAUDE.md now says 'start make dev to regenerate'"
+
+    - issue: "Sub-router directory convention"
+      fixed: true
+      evidence: "packages/api/CLAUDE.md documents routers/ pattern with example"
+
+    - issue: "Incremental Link type cast pattern"
+      fixed: true
+      evidence: "Root CLAUDE.md common mistakes table includes 'as string' cast pattern"
+
+    - issue: "Optimistic update example"
+      fixed: true
+      evidence: "apps/web/CLAUDE.md references todos.tsx drag-and-drop handler"
+
+    - issue: "JSX // lint gotcha"
+      fixed: true
+      evidence: "Root CLAUDE.md common mistakes table includes noCommentText rule"
+
+  new_issues_in_round_2:
+    - issue: "Route tree not regenerated by subagents"
+      severity: "medium"
+      notes: >
+        Subagent creating board list page got stuck trying to run make dev
+        for route tree regen. Orchestrator had to finish the work.
+        Template could provide a standalone route tree generation command.
+
+    - issue: "as-string casts need cleanup after all routes exist"
+      severity: "low"
+      notes: >
+        When routes are created sequentially, Link to= for not-yet-created
+        routes needs 'as string' cast. Must clean up after all routes exist.
+        This is inherent to the file-based routing + TypeScript approach.
+
+    - issue: "setQueryData callback type inference"
+      severity: "low"
+      notes: >
+        TypeScript couldn't infer the callback parameter type in setQueryData
+        when using 'typeof previous' (which includes undefined). Had to add
+        explicit BoardData type. This is a tRPC + React Query typing edge case.
+
+    - issue: "@tanstack/intent skills not auto-loaded before planning"
+      severity: "low"
+      notes: >
+        CLAUDE.md says to run 'pnpm exec @tanstack/intent list' before
+        modifying library integrations, but this was skipped during plan
+        writing. User had to prompt for it. Skill worked well once loaded.
+
+  dx_qualitative:
+    - "Updated CLAUDE.md guidance significantly helped subagents — the routers/ convention, optimistic update reference, and common mistakes table all prevented issues"
+    - "BDD tests were MUCH faster to get right — Round 1's BDD task was 10x longer due to stale dev server debugging"
+    - "Batching tRPC routers into one dispatch was efficient — they share the same file (router.ts) so sequential within one agent was natural"
+    - "Route tree regeneration remains the main friction point — subagents struggle with 'start make dev, wait, kill it'"
+    - "The modular Prisma schema pattern (one file per domain) made Task 1 trivial — just create board.prisma"
+    - "Mobile test suite (new in template) caught nothing extra but validates responsive behavior"
+    - "Spec reviewer confirmed routers were correct on first pass — no fixes needed"
+    - "Test locator debugging (2 runs) was the only iteration — much better than Round 1"
