@@ -24,43 +24,30 @@ given("I have a board {string}", async ({ page }, title: string) => {
 when(
   "I add a card {string} in {string}",
   async ({ page }, text: string, columnLabel: string) => {
-    // Find the column by its heading, then find the input within it
-    const column = page.locator("div", {
-      has: page.getByRole("heading", { name: columnLabel }),
-    });
-    const input = column.getByPlaceholder(
+    // Use the placeholder to find the specific input within the column
+    const input = page.getByPlaceholder(
       new RegExp(`add ${columnLabel.toLowerCase()}`, "i"),
     );
     await input.fill(text);
-    await column.getByRole("button", { name: "Add" }).click();
+    // Find the form containing this input and submit it
+    const form = page.locator("form", { has: input });
+    await form.getByRole("button", { name: "Add" }).click();
     // Wait for card to appear
     await expect(page.getByText(text)).toBeVisible({ timeout: 5000 });
   },
 );
 
 when("I vote on card {string}", async ({ page }, text: string) => {
-  const card = page.locator("div", { hasText: text }).filter({
-    has: page.locator("button", { has: page.locator("svg") }),
-  });
-  // Click the vote button (the one with ThumbsUp icon and a number)
-  await card
-    .locator("button")
-    .filter({ has: page.locator("svg") })
-    .first()
-    .click();
+  // Find the card by its text content, then locate the vote button (first button in the card)
+  const card = page.locator("p", { hasText: text }).locator("..");
+  await card.locator("button").first().click();
   await page.waitForLoadState("networkidle");
 });
 
 when("I delete card {string}", async ({ page }, text: string) => {
-  const card = page.locator("div", { hasText: text }).filter({
-    has: page.locator("button", { has: page.locator("svg") }),
-  });
-  // Click the delete button (Trash2 icon) — it's the last button with an svg
-  const deleteBtn = card
-    .locator("button")
-    .filter({ has: page.locator("svg") })
-    .last();
-  await deleteBtn.click();
+  // Find the card by its text content, then locate the delete button (last button in the card)
+  const card = page.locator("p", { hasText: text }).locator("..");
+  await card.locator("button").last().click();
   await expect(page.getByText(text)).not.toBeVisible({ timeout: 5000 });
 });
 
@@ -82,13 +69,8 @@ when(
 then(
   "card {string} should have {int} vote(s)",
   async ({ page }, text: string, count: number) => {
-    const card = page.locator("div", { hasText: text }).filter({
-      has: page.locator("button", { has: page.locator("svg") }),
-    });
-    const voteBtn = card
-      .locator("button")
-      .filter({ has: page.locator("svg") })
-      .first();
+    const card = page.locator("p", { hasText: text }).locator("..");
+    const voteBtn = card.locator("button").first();
     await expect(voteBtn).toContainText(String(count));
   },
 );

@@ -59,7 +59,7 @@ function BoardDetailPage() {
   const queryClient = useQueryClient();
 
   const boardQueryOptions = trpc.board.get.queryOptions({ id: boardId });
-  const board = useQuery(boardQueryOptions);
+  const board = useQuery({ ...boardQueryOptions, retry: false });
 
   const createCard = useMutation(
     trpc.card.create.mutationOptions({

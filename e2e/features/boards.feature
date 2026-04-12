@@ -2,9 +2,8 @@ Feature: Retro Board Management
 
   Scenario: Create a board
     Given I am signed in as "create-board@example.com"
-    And I navigate to "/boards"
-    When I click "New Board"
-    And I fill in "Board Title" with "Sprint 42 Retro"
+    And I navigate to "/boards/new"
+    When I fill in "Board Title" with "Sprint 42 Retro"
     And I click "Create Board"
     Then I should see "Sprint 42 Retro"
 
@@ -49,9 +48,8 @@ Feature: Retro Board Management
 
   Scenario: User isolation — boards are private
     Given I am signed in as "private-boards@example.com"
-    And I navigate to "/boards"
-    When I click "New Board"
-    And I fill in "Board Title" with "My Private Board"
+    And I navigate to "/boards/new"
+    When I fill in "Board Title" with "My Private Board"
     And I click "Create Board"
     And I navigate to "/boards"
     Then I should see "My Private Board"
