@@ -96,13 +96,13 @@ Three files in `packages/api/src/routers/`, all using `protectedProcedure`. Moun
 | Procedure | Type | Input | Behavior |
 |-----------|------|-------|----------|
 | `create` | mutation | `{ boardId, text: z.string().min(1).max(500), category: z.nativeEnum(CardCategory) }` | Validates board is OPEN and owned by user. `NOT_FOUND` otherwise |
-| `delete` | mutation | `{ id: z.string() }` | Validates card's board is owned by user and OPEN. `NOT_FOUND` otherwise |
+| `delete` | mutation | `{ id: z.string() }` | Validates card exists, card's board.userId matches session user, and board is OPEN. `NOT_FOUND` otherwise |
 
 ### vote.ts
 
 | Procedure | Type | Input | Behavior |
 |-----------|------|-------|----------|
-| `toggle` | mutation | `{ cardId: z.string() }` | Validates card's board is owned by user. Deletes vote if exists, creates if not. Returns `{ voted: boolean }` |
+| `toggle` | mutation | `{ cardId: z.string() }` | Validates card's board is owned by user **and OPEN**. `NOT_FOUND` otherwise. Deletes vote if exists, creates if not. Returns `{ voted: boolean }` |
 
 ### board.get return shape
 
@@ -162,9 +162,10 @@ Install Badge component: `pnpm dlx shadcn@latest add badge` in `packages/ui`. No
 
 - Query `board.get` with `Route.useParams().boardId`
 - Three-column responsive grid (stack on mobile): Went Well / To Improve / Action Items
+- Each column wrapped in a container with `data-testid="column-went-well"`, `data-testid="column-to-improve"`, `data-testid="column-action-item"`
 - Each column: h2 heading, card list, add-card form (textarea + "Add Card" button) if board OPEN
 - Each card has `data-testid="card"` for BDD selectors
-- Card contents: text, vote button (heart/thumbs-up icon + count), delete button (X icon) if board OPEN
+- Card contents: text, vote button (`data-testid="vote-button"`, heart/thumbs-up icon + count), delete button (`data-testid="delete-button"`, X icon) if board OPEN
 - Optimistic updates on:
   - **Card create**: append to column optimistically, rollback on error
   - **Card delete**: remove from list optimistically, rollback on error
@@ -178,7 +179,7 @@ Install Badge component: `pnpm dlx shadcn@latest add badge` in `packages/ui`. No
 
 ### Navbar update (navbar.tsx)
 
-Add to `navLinks`: `{ to: "/boards" as const, label: "Boards" }`. The `as const` assertion is temporary — cleaned up after route tree regeneration.
+Add to `navLinks`: `{ to: "/boards" as string, label: "Boards" }`. The `as string` cast is temporary (route not yet in route tree) — cleaned up after route tree regeneration.
 
 ## BDD Tests
 
@@ -202,8 +203,8 @@ New steps (boards-specific):
 | Step | Pattern | Locator strategy |
 |------|---------|-----------------|
 | Create a board titled {string} | Fill "Board title" placeholder, click submit | `page.getByPlaceholder("Board title")`, `page.locator('button[type="submit"]')` |
-| I add a card {string} in the {string} column | Find column by heading, fill textarea, click "Add Card" | `page.getByRole("heading", { name: column })` then scope to parent container |
-| I should see card {string} in the {string} column | Find column by heading, check for card text within | Column-scoped `data-testid="card"` with `hasText` |
+| I add a card {string} in the {string} column | Find column by data-testid, fill textarea, click "Add Card" | `page.locator('[data-testid="column-<slug>"]')` scoped textarea + button |
+| I should see card {string} in the {string} column | Find column by data-testid, check for card text within | `page.locator('[data-testid="column-<slug>"] [data-testid="card"]', { hasText })` |
 | I vote on card {string} | Find card by `data-testid="card"` + hasText, click vote button | `page.locator('[data-testid="card"]', { hasText })` |
 | I should see vote count {string} on card {string} | Verify vote count text on specific card | Same card scoping |
 | I delete card {string} | Find card, click delete button within | Scoped delete button inside card container |
@@ -212,11 +213,16 @@ New steps (boards-specific):
 | I should see {string} in the URL | Check current URL contains string | `expect(page).toHaveURL()` |
 | I save the current URL | Store in variable for later navigation | `page.url()` |
 
-Reused steps from auth.ts: `I am signed in as`, `I navigate to`, `I should see`, `I should not see`, `I click`, `I fill in...with...`.
+| I should not see {string} | Verify text not visible on page | `expect(page.getByText(text)).not.toBeVisible()` |
+| vote buttons should be disabled | Verify all vote buttons in cards are disabled | `page.locator('[data-testid="card"] button[data-testid="vote-button"]')` + `toBeDisabled()` |
+
+Reused steps from auth.ts: `I am signed in as`, `I navigate to`, `I should see`, `I click`, `I fill in...with...`.
+
+Note: `I should not see` is defined in boards.ts (not in auth.ts). Each scenario uses inline `Given I am signed in as` — no Background block, since scenarios 7-8 need different users.
 
 ### BDD locator principles (R3 lessons)
 
-- Anchor columns by heading text, scope cards within the heading's parent section
+- Anchor columns by `data-testid="column-<slug>"` (e.g. `column-went-well`), scope cards within
 - Use `data-testid="card"` on card components — not CSS classes (fragile) or `data-slot` (missing from template's Card)
 - Scope delete/vote buttons within the card's `data-testid` container
 - Use `page.locator('button[type="submit"]')` for form submission (avoids matching other buttons)
