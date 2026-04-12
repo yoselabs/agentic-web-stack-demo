@@ -1,4 +1,4 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { defaultAnimateLayoutChanges, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@project/ui/components/button";
 import type { Todo } from "./types";
@@ -19,7 +19,12 @@ export function SortableTodoItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: todo.id });
+  } = useSortable({
+    id: todo.id,
+    // Don't animate the dropped item — DOM order is already updated via setQueryData
+    animateLayoutChanges: (args) =>
+      args.wasDragging ? false : defaultAnimateLayoutChanges(args),
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),

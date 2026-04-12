@@ -10,6 +10,7 @@ import type { AppRouter } from "@project/api";
 import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import { toast } from "sonner";
 
 export function useTodos(
@@ -63,6 +64,7 @@ export function useTodos(
   const reorderTodos = useMutation(
     trpc.todo.reorder.mutationOptions({
       onError: () => {
+        // Rollback: refetch server state since optimistic update was wrong
         queryClient.invalidateQueries(trpc.todo.list.queryFilter());
         toast.error("Failed to reorder");
       },
@@ -91,10 +93,17 @@ export function useTodos(
     );
     const currentCompleted = currentData?.filter((t) => t.completed) ?? [];
 
-    queryClient.setQueryData(trpc.todo.list.queryFilter().queryKey, [
-      ...reordered,
-      ...currentCompleted,
-    ]);
+    // Cancel any in-flight list queries so they don't overwrite our optimistic update
+    queryClient.cancelQueries(trpc.todo.list.queryFilter());
+
+    // flushSync forces React to re-render synchronously so the DOM order
+    // matches before @dnd-kit resets CSS transforms (prevents item flash)
+    flushSync(() => {
+      queryClient.setQueryData(trpc.todo.list.queryFilter().queryKey, [
+        ...reordered,
+        ...currentCompleted,
+      ]);
+    });
 
     reorderTodos.mutate({ ids: reordered.map((t) => t.id) });
   };
