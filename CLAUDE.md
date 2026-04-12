@@ -29,18 +29,20 @@ Each directory with a CLAUDE.md has area-specific guidance. Read it before worki
 Pre-commit hooks run `agent-harness fix` then `agent-harness lint` automatically.
 Never truncate lint or test output — read the full error.
 
-## Development Workflow (BDD-first)
+## Development Workflow (BDD-first, Vertical Slices)
 
-When adding features, write the Gherkin spec BEFORE implementation:
+Features are built as vertical slices within domain groups. A domain group is a cluster of related Prisma models that serve one user-facing capability (e.g., Board + Column + Card).
 
-1. **Write Gherkin feature file** — define the behavior contract (will fail)
-2. **Write step definitions** — implement test helpers
-3. **Implement backend** — tRPC routes with unit/integration TDD (Vitest)
-4. **Implement frontend** — UI components
-5. **Run BDD tests** — watch them go green (`make test`)
-6. **Quality gate** — `make check` must pass before claiming done
+For each domain group:
 
-The Gherkin spec is the source of truth for "what does done look like." Never save BDD tests for last.
+1. **Write Gherkin scenarios** — behavior contract for ALL features in the domain group
+2. **Schema** — all Prisma models for the domain group, `make db-push`
+3. **Backend (batched)** — all services + routers + Vitest for the domain group → API GREEN
+4. **Frontend (per feature)** — hook + components + route + step defs + BDD → GREEN per feature
+
+Step definitions are written AFTER the UI exists (Phase 3), not before. The Gherkin spec is the source of truth, but step defs need real HTML to reference correct selectors.
+
+See `docs/superpowers/specs/2026-04-12-development-cycle-handover.md` for the full process spec.
 
 ## Package Naming
 

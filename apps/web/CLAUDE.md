@@ -91,6 +91,33 @@ function MyComponent() {
 }
 ```
 
+### Hook Extraction Pattern
+
+When a route has 2+ mutations or the return object would have 5+ properties, extract orchestration into a `features/*/use-*.ts` hook. The route becomes a thin shell.
+
+```tsx
+// features/todo/use-todos.ts — orchestration hook
+export function useTodos(
+  trpc: TRPCOptionsProxy<AppRouter>,
+  queryClient: QueryClient,
+) {
+  const todos = useQuery(trpc.todo.list.queryOptions());
+  const createTodo = useMutation(trpc.todo.create.mutationOptions({ ... }));
+  // ... all mutations, handlers, derived state
+  return { todos, createTodo, handleSubmit, handleDragEnd, ... };
+}
+
+// routes/_authenticated/todos.tsx — thin shell
+function TodosPage() {
+  const { trpc } = Route.useRouteContext();
+  const queryClient = useQueryClient();
+  const { todos, handleSubmit, ... } = useTodos(trpc, queryClient);
+  return <main>...</main>;
+}
+```
+
+The hook receives `trpc` and `queryClient` as parameters because `Route.useRouteContext()` can only be called inside the route component.
+
 ### Optimistic Updates
 
 For instant UI feedback before the server confirms, see the drag-and-drop reorder handler in `src/routes/_authenticated/todos.tsx` — it uses `queryClient.setQueryData` to update the cache immediately, with `onError` invalidation as fallback.
