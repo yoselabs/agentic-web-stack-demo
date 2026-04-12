@@ -83,6 +83,13 @@ But there are real tech constraints with subagent-driven development:
 4. **Validate by building a real feature** — run a multi-feature project using the prescribed process
 5. **Capture lessons** — update the process based on what breaks
 
+## Observations from Round 2 (Retro Board)
+
+- **Batching tRPC routers into one subagent was 3x more efficient** — Tasks 2-4 (board, card, column routers) were batched into a single subagent instead of 3 separate ones. The shared context (Prisma schema, router conventions, tRPC patterns) meant the agent didn't re-discover the same things 3 times. Consider this when defining plan structure: group tasks that share domain context.
+- Spec reviewer found zero issues — high plan specificity paid off
+- BDD tests passed on 2nd run (vs Round 1's ~10 iterations) thanks to fixed test ports documentation
+- Mobile test suite validated responsive behavior automatically
+
 ## Context for Next Session
 
 - This repo is `/Users/iorlas/Workspaces/agentic-web-stack`
