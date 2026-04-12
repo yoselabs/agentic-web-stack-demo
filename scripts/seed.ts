@@ -18,11 +18,36 @@ async function main() {
   // Create sample todos
   await db.todo.createMany({
     data: [
-      { title: "Set up the project", completed: true, userId: user.id },
-      { title: "Add authentication", completed: true, userId: user.id },
-      { title: "Build the dashboard", completed: false, userId: user.id },
-      { title: "Write BDD tests", completed: false, userId: user.id },
-      { title: "Deploy to production", completed: false, userId: user.id },
+      {
+        title: "Set up the project",
+        completed: true,
+        position: 0,
+        userId: user.id,
+      },
+      {
+        title: "Add authentication",
+        completed: true,
+        position: 1,
+        userId: user.id,
+      },
+      {
+        title: "Build the dashboard",
+        completed: false,
+        position: 0,
+        userId: user.id,
+      },
+      {
+        title: "Write BDD tests",
+        completed: false,
+        position: 1,
+        userId: user.id,
+      },
+      {
+        title: "Deploy to production",
+        completed: false,
+        position: 2,
+        userId: user.id,
+      },
     ],
   });
 

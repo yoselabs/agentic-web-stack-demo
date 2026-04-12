@@ -101,7 +101,7 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 - [ ] **[recipe]** Dark mode — Tailwind dark mode with theme toggle + localStorage persistence
 - [ ] **[recipe]** Form library — TanStack Form or react-hook-form for complex forms with validation
 - [x] **[template]** Responsive design — mobile viewport (390×844) BDD tests, hamburger-aware step helpers, DB reset between viewports, `@mobile` tag for mobile-only scenarios
-- [ ] **[recipe]** Drag and drop — `@dnd-kit/core` for sortable lists, kanban boards, tree reordering (too app-specific for template)
+- [x] **[recipe]** Drag and drop — @dnd-kit/sortable with position-based ordering on todo list
 
 ## AI Features
 
