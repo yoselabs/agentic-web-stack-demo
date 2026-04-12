@@ -94,7 +94,11 @@ when("I navigate to {string}", async ({ page }, path: string) => {
 });
 
 when("I click {string}", async ({ page }, text: string) => {
-  const btn = page.getByRole("button", { name: text });
+  let btn = page.getByRole("button", { name: text });
+  // Fall back to link role (e.g. <Link asChild> rendered as <a> with Button styles)
+  if (!(await btn.count())) {
+    btn = page.getByRole("link", { name: text });
+  }
   // On mobile, buttons in the navbar may be hidden behind the hamburger menu
   if (!(await btn.isVisible())) {
     const hamburger = page.getByRole("button", { name: "Toggle menu" });
