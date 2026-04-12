@@ -46,7 +46,8 @@ function BoardDetailPage() {
   const { boardId } = Route.useParams();
   const queryClient = useQueryClient();
 
-  const board = useQuery(trpc.board.get.queryOptions({ id: boardId }));
+  const boardQuery = useQuery(trpc.board.get.queryOptions({ id: boardId }));
+  const board = boardQuery.data as BoardData | undefined;
 
   const queryKey = trpc.board.get.queryFilter({ id: boardId }).queryKey;
 
@@ -159,7 +160,7 @@ function BoardDetailPage() {
     }),
   );
 
-  if (board.isLoading) {
+  if (boardQuery.isLoading) {
     return (
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <p className="text-muted-foreground">Loading...</p>
@@ -167,24 +168,24 @@ function BoardDetailPage() {
     );
   }
 
-  if (!board.data) {
+  if (!board) {
     return (
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-3xl font-bold mb-4">Board not found</h1>
         <Button asChild variant="outline">
-          <Link to={"/boards" as string}>Back to boards</Link>
+          <Link to="/boards">Back to boards</Link>
         </Button>
       </main>
     );
   }
 
-  const isOpen = board.data.status === "OPEN";
+  const isOpen = board.status === "OPEN";
 
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">{board.data.title}</h1>
+          <h1 className="text-3xl font-bold">{board.title}</h1>
           <Badge variant={isOpen ? "default" : "secondary"}>
             {isOpen ? "Open" : "Closed"}
           </Badge>
@@ -206,9 +207,7 @@ function BoardDetailPage() {
             key={column.category}
             title={column.title}
             category={column.category}
-            cards={board.data.cards.filter(
-              (c) => c.category === column.category,
-            )}
+            cards={board.cards.filter((c) => c.category === column.category)}
             isOpen={isOpen}
             boardId={boardId}
             onCreateCard={(text, category) =>

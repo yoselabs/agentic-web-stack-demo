@@ -22,7 +22,7 @@ function BoardsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Boards</h1>
         <Button asChild>
-          <Link to={"/boards/new" as string}>New Board</Link>
+          <Link to="/boards/new">New Board</Link>
         </Button>
       </div>
 
