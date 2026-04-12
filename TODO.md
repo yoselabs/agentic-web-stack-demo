@@ -119,9 +119,16 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 
 ## Developer Experience
 
-- [ ] **[template]** Storybook — component development in isolation for packages/ui
 - [ ] **[template]** Route tree generation fix — replace start/kill vite hack in `make setup`
 - [ ] **[recipe]** API documentation — auto-generated from tRPC router types (trpc-openapi)
 - [ ] **[recipe]** `@tanstack/intent` — deeper investigation of AI skills system
 - [ ] **[recipe]** Database GUI — Prisma Studio alternative: Drizzle Studio, pgAdmin in docker-compose
 - [ ] **[recipe]** Git hooks — commitlint for conventional commits
+
+---
+
+## Rejected
+
+| Tool | Why not |
+|------|---------|
+| **Storybook** | AI agents can't visually verify rendered components — they'd write stories mechanically without visual review, producing tautological tests. Humans open it a few times then rarely again. BDD tests already verify components work in real pages. shadcn/ui components are pre-tested upstream. Overhead without payoff for an AI-agent-driven workflow. Add per-project if a human designer joins. |
