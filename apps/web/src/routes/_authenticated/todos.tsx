@@ -8,82 +8,20 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@project/ui/components/button";
 import { Input } from "@project/ui/components/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { CompletedTodoItem } from "#/features/todo/completed-todo-item";
+import { SortableTodoItem } from "#/features/todo/sortable-todo-item";
 
 export const Route = createFileRoute("/_authenticated/todos")({
   component: TodosPage,
 });
-
-interface Todo {
-  id: string;
-  title: string;
-  completed: boolean;
-  position: number;
-}
-
-function SortableTodoItem({
-  todo,
-  onComplete,
-  onDelete,
-}: {
-  todo: Todo;
-  onComplete: () => void;
-  onDelete: () => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: todo.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 p-3 rounded-lg border bg-background cursor-grab active:cursor-grabbing"
-      {...attributes}
-      {...listeners}
-    >
-      <input
-        type="checkbox"
-        checked={todo.completed}
-        onChange={onComplete}
-        onClick={(e) => e.stopPropagation()}
-        className="h-4 w-4"
-      />
-      <span className="flex-1">{todo.title}</span>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="text-destructive hover:text-destructive"
-      >
-        Delete
-      </Button>
-    </li>
-  );
-}
 
 function TodosPage() {
   const { trpc } = Route.useRouteContext();
@@ -222,33 +160,17 @@ function TodosPage() {
               {activeTodos.length > 0 && <div className="border-t my-4" />}
               <ul className="space-y-2">
                 {completedTodos.map((todo) => (
-                  <li
+                  <CompletedTodoItem
                     key={todo.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border opacity-60"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={todo.completed}
-                      onChange={() =>
-                        completeTodo.mutate({
-                          id: todo.id,
-                          completed: !todo.completed,
-                        })
-                      }
-                      className="h-4 w-4"
-                    />
-                    <span className="flex-1 line-through text-muted-foreground">
-                      {todo.title}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteTodo.mutate({ id: todo.id })}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Delete
-                    </Button>
-                  </li>
+                    todo={todo}
+                    onUncomplete={() =>
+                      completeTodo.mutate({
+                        id: todo.id,
+                        completed: !todo.completed,
+                      })
+                    }
+                    onDelete={() => deleteTodo.mutate({ id: todo.id })}
+                  />
                 ))}
               </ul>
             </>
