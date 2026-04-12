@@ -20,8 +20,8 @@ function NewBoardPage() {
       onSuccess: (board) => {
         toast.success("Board created");
         navigate({
-          to: "/boards/$boardId" as string,
-          params: { boardId: board.id } as Record<string, string>,
+          to: "/boards/$boardId",
+          params: { boardId: board.id },
         });
       },
       onError: () => toast.error("Failed to create board"),

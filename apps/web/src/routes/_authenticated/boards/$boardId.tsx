@@ -12,6 +12,27 @@ export const Route = createFileRoute("/_authenticated/boards/$boardId")({
 
 type CardCategory = "WENT_WELL" | "TO_IMPROVE" | "ACTION_ITEM";
 
+type BoardCard = {
+  id: string;
+  text: string;
+  category: string;
+  boardId: string;
+  userId: string;
+  createdAt: string;
+  voteCount: number;
+  votedByMe: boolean;
+};
+
+type BoardData = {
+  id: string;
+  title: string;
+  status: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  cards: BoardCard[];
+};
+
 const CATEGORIES: { key: CardCategory; label: string; color: string }[] = [
   {
     key: "WENT_WELL",
@@ -56,7 +77,7 @@ function BoardDetailPage() {
         const previous = queryClient.getQueryData(boardQueryOptions.queryKey);
         queryClient.setQueryData(
           boardQueryOptions.queryKey,
-          (old: typeof previous) => {
+          (old: BoardData | undefined) => {
             if (!old) return old;
             return {
               ...old,
@@ -88,7 +109,7 @@ function BoardDetailPage() {
         const previous = queryClient.getQueryData(boardQueryOptions.queryKey);
         queryClient.setQueryData(
           boardQueryOptions.queryKey,
-          (old: typeof previous) => {
+          (old: BoardData | undefined) => {
             if (!old) return old;
             return {
               ...old,
@@ -190,7 +211,9 @@ function BoardDetailPage() {
           <CategoryColumn
             key={cat.key}
             category={cat}
-            cards={board.data.cards.filter((c) => c.category === cat.key)}
+            cards={board.data.cards.filter(
+              (c: BoardCard) => c.category === cat.key,
+            )}
             isOpen={isOpen}
             onCreateCard={(text) =>
               createCard.mutate({
