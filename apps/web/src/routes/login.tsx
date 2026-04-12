@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, signUp, useSession } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
@@ -15,10 +15,12 @@ function LoginPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
-  if (session) {
-    navigate({ to: "/dashboard" });
-    return null;
-  }
+  // Redirect if already logged in
+  useEffect(() => {
+    if (session) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +46,8 @@ function LoginPage() {
 
     navigate({ to: "/dashboard" });
   };
+
+  if (session) return null;
 
   return (
     <main className="flex min-h-screen items-center justify-center">

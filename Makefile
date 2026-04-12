@@ -1,4 +1,4 @@
-.PHONY: setup dev db db-push db-generate db-studio check typecheck lint lint-fix clean
+.PHONY: setup dev db db-push db-generate db-studio check typecheck lint lint-fix test test-ui clean
 
 # Zero-conf setup: clone → make setup → make dev
 setup:
@@ -33,6 +33,12 @@ lint:
 	pnpm -w run lint
 lint-fix:
 	pnpm -w run lint:fix
+
+# BDD Tests (uses separate test database on port 5433)
+test:
+	cd e2e && npx bddgen && npx playwright test
+test-ui:
+	cd e2e && npx bddgen && npx playwright test --ui
 
 # Cleanup
 clean:

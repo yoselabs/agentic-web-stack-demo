@@ -1,4 +1,5 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useSession } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -7,8 +8,15 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { data: session, isPending } = useSession();
+  const navigate = useNavigate();
 
-  if (isPending) {
+  useEffect(() => {
+    if (!isPending && !session) {
+      navigate({ to: "/login" });
+    }
+  }, [isPending, session, navigate]);
+
+  if (isPending || !session) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-gray-500">Loading...</p>
@@ -16,15 +24,5 @@ function AuthenticatedLayout() {
     );
   }
 
-  if (!session) {
-    return <MetaRedirect />;
-  }
-
   return <Outlet />;
-}
-
-function MetaRedirect() {
-  const navigate = Route.useNavigate();
-  navigate({ to: "/login" });
-  return null;
 }

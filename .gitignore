@@ -33,3 +33,4 @@ npm-debug.log*
 # Testing
 test-results/
 playwright-report/
+.features-gen/

@@ -21,7 +21,9 @@
       ".output",
       ".vinxi",
       "prisma/generated",
-      "routeTree.gen.ts"
+      "routeTree.gen.ts",
+      ".features-gen",
+      "test-results"
     ]
   }
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { signOut, useSession } from "#/lib/auth-client";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -7,6 +7,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const { data: session } = useSession();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/" });
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center">
@@ -17,7 +23,7 @@ function DashboardPage() {
         </p>
         <button
           type="button"
-          onClick={() => signOut()}
+          onClick={handleSignOut}
           className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
         >
           Sign Out
