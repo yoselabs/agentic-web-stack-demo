@@ -6,7 +6,9 @@ const { Given: given, When: when, Then: then } = createBdd();
 given("I have a todo {string}", async ({ page }, title: string) => {
   await page.getByPlaceholder("Add a todo...").fill(title);
   await page.getByRole("button", { name: "Add" }).click();
-  await expect(page.getByText(title)).toBeVisible({ timeout: 5000 });
+  await expect(page.locator("li", { hasText: title }).first()).toBeVisible({
+    timeout: 5000,
+  });
 });
 
 when("I toggle the todo {string}", async ({ page }, title: string) => {
@@ -29,9 +31,9 @@ when("I sign out and sign in as {string}", async ({ page }, email: string) => {
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Sign Up" }).click();
-  await page.getByPlaceholder("Name").fill(email.split("@")[0]);
-  await page.getByPlaceholder("Email").fill(email);
-  await page.getByPlaceholder("Password").fill("testpassword123");
+  await page.getByLabel("Name").fill(email.split("@")[0]);
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("testpassword123");
   await page.locator('button[type="submit"]').click();
   await page.waitForURL(/\/dashboard/, { timeout: 10000 });
 });

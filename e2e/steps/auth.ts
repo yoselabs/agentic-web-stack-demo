@@ -14,9 +14,9 @@ async function signUpOrSignIn(
 
   // Try sign up first
   await page.getByRole("button", { name: "Sign Up" }).click();
-  await page.getByPlaceholder("Name").fill(email.split("@")[0]);
-  await page.getByPlaceholder("Email").fill(email);
-  await page.getByPlaceholder("Password").fill(password);
+  await page.getByLabel("Name").fill(email.split("@")[0]);
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(password);
   await page.locator('button[type="submit"]').click();
 
   // Wait for either dashboard or error
@@ -31,8 +31,8 @@ async function signUpOrSignIn(
   if (result === "exists") {
     // User exists — switch to sign in
     await page.getByRole("button", { name: "Sign In" }).click();
-    await page.getByPlaceholder("Email").fill(email);
-    await page.getByPlaceholder("Password").fill(password);
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
     await page.locator('button[type="submit"]').click();
     await page.waitForURL(/\/dashboard/, { timeout: 10000 });
   }
@@ -73,7 +73,13 @@ when("I switch to sign up mode", async ({ page }) => {
 when(
   "I fill in {string} with {string}",
   async ({ page }, field: string, value: string) => {
-    await page.getByPlaceholder(field).fill(value);
+    // Try label first (form fields with <Label>), fall back to placeholder (e.g. todo input)
+    const byLabel = page.getByLabel(field);
+    if (await byLabel.count()) {
+      await byLabel.fill(value);
+    } else {
+      await page.getByPlaceholder(field).fill(value);
+    }
   },
 );
 

@@ -68,12 +68,12 @@ code patterns, and **common mistakes** that prevent AI-generated bugs.
 **Before modifying any library integration**, discover and read the relevant skill:
 
 ```
-npx @tanstack/intent list
+pnpm exec @tanstack/intent list
 ```
 
 Find the skill matching your task, then **read its SKILL.md** — especially the
 "Common Mistakes" section. Do this after adding new dependencies too.
 
 <!-- intent-skills:start -->
-<!-- Dynamic discovery via `npx @tanstack/intent list` — no static mappings needed -->
+<!-- Dynamic discovery via `pnpm exec @tanstack/intent list` — no static mappings needed -->
 <!-- intent-skills:end -->

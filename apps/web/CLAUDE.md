@@ -1,5 +1,28 @@
 # apps/web — TanStack Start Frontend
 
+## FSD (Feature-Sliced Design)
+
+Frontend is organized by FSD layers. Routes stay file-based (TanStack Router requirement), everything else follows FSD:
+
+```
+src/
+  routes/          # TanStack Router file-based routes — thin shells that compose features/widgets
+  features/        # User-facing capabilities with business logic
+    auth/          # auth-client, UserBlock
+  widgets/         # Composed UI blocks (combine features + UI components)
+    navbar.tsx     # Navbar, Logo
+  shared/          # Cross-cutting: lib, config (when needed)
+```
+
+**Layer rules:**
+- `routes/` → imports from `features/`, `widgets/`, `@project/ui`
+- `widgets/` → imports from `features/`, `@project/ui`
+- `features/` → imports from `shared/`, `@project/ui`
+- `shared/` → imports from `@project/ui` only
+- **Never import upward** (features must not import from widgets or routes)
+
+**Adding a new feature:** create `src/features/<name>/` with its UI components and logic. Import it from routes.
+
 ## Adding a New Page
 
 1. Create a route file in `src/routes/`:
@@ -51,10 +74,14 @@ function MyComponent() {
   // Query
   const data = useQuery(trpc.todo.list.queryOptions());
 
-  // Mutation with cache invalidation
+  // Mutation with cache invalidation and toast
   const createTodo = useMutation(
     trpc.todo.create.mutationOptions({
-      onSuccess: () => queryClient.invalidateQueries(trpc.todo.list.queryFilter()),
+      onSuccess: () => {
+        queryClient.invalidateQueries(trpc.todo.list.queryFilter());
+        toast.success("Created");
+      },
+      onError: () => toast.error("Failed to create"),
     }),
   );
 }
@@ -62,10 +89,10 @@ function MyComponent() {
 
 ## Auth Client
 
-Import from `#/lib/auth-client`:
+Import from `#/features/auth/auth-client`:
 
 ```tsx
-import { useSession, signIn, signUp, signOut } from "#/lib/auth-client";
+import { useSession, signIn, signUp, signOut } from "#/features/auth/auth-client";
 ```
 
 - `useSession()` — returns `{ data: session, isPending }`
@@ -76,12 +103,13 @@ import { useSession, signIn, signUp, signOut } from "#/lib/auth-client";
 ## File Structure
 
 - `src/router.tsx` — router factory, tRPC client, QueryClient
-- `src/routes/__root.tsx` — HTML shell, QueryClientProvider
-- `src/routes/_authenticated.tsx` — auth guard layout (redirects to /login if not signed in)
+- `src/routes/__root.tsx` — HTML shell, QueryClientProvider, Toaster, 404/500 pages
+- `src/routes/_authenticated.tsx` — auth guard layout with Navbar
 - `src/routes/_authenticated/*.tsx` — protected pages
 - `src/routes/*.tsx` — public pages
-- `src/lib/auth-client.ts` — Better-Auth React client
-- `src/styles.css` — Tailwind entry point
+- `src/features/auth/` — auth-client config, UserBlock
+- `src/widgets/` — Navbar (desktop + mobile), Logo
+- `src/styles.css` — Tailwind v4 entry point + shadcn/ui CSS variables
 - `vite.config.ts` — Vite + TanStack Start + Tailwind + Nitro
 
 ## Navigation
@@ -108,4 +136,5 @@ Never call `navigate()` during render — use `useEffect`.
 - Create `QueryClient` as a module-level singleton — use `getQueryClient()` pattern
 - Import `appRouter` value (only `import type { AppRouter }`)
 - Put `verbatimModuleSyntax: true` in tsconfig — breaks TanStack Start
-- Add `credentials: "include"` is already configured in the tRPC httpBatchLink — don't duplicate
+- Add `credentials: "include"` — already configured in the tRPC httpBatchLink
+- Import upward in FSD layers (features must not import from widgets or routes)

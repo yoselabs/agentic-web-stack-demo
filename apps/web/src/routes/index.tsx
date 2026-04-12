@@ -1,5 +1,6 @@
+import { Button } from "@project/ui/components/button";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useSession } from "#/lib/auth-client";
+import { useSession } from "#/features/auth/auth-client";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -12,25 +13,19 @@ function HomePage() {
     <main className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">Agentic Web Stack</h1>
-        <p className="text-lg text-gray-600 mb-6">
+        <p className="text-lg text-muted-foreground mb-6">
           TanStack Start + Hono + tRPC + Prisma + Better-Auth
         </p>
         {isPending ? (
-          <p className="text-gray-400">Loading...</p>
+          <p className="text-muted-foreground">Loading...</p>
         ) : session ? (
-          <Link
-            to="/dashboard"
-            className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-          >
-            Go to Dashboard
-          </Link>
+          <Button asChild>
+            <Link to="/dashboard">Go to Dashboard</Link>
+          </Button>
         ) : (
-          <Link
-            to="/login"
-            className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-          >
-            Sign In
-          </Link>
+          <Button asChild>
+            <Link to="/login">Sign In</Link>
+          </Button>
         )}
       </div>
     </main>

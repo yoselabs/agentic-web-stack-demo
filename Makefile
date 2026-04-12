@@ -1,4 +1,4 @@
-.PHONY: setup dev db db-push db-generate db-studio check typecheck lint fix test test-ui clean
+.PHONY: setup dev db db-push db-generate db-studio db-seed check typecheck lint fix test test-ui test-unit clean
 
 # Zero-conf setup: clone → make setup → make dev
 setup:
@@ -10,7 +10,9 @@ setup:
 	@until docker compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; do sleep 1; done
 	pnpm -w run db:push
 	@echo "Generating route tree..."
-	@cd apps/web && npx vite dev --port 0 &>/dev/null & VIT_PID=$$!; sleep 4; kill $$VIT_PID 2>/dev/null; true
+	@cd apps/web && pnpm exec vite dev --port 0 & VIT_PID=$$!; \
+		while [ ! -f src/routeTree.gen.ts ]; do sleep 0.5; done; \
+		kill $$VIT_PID 2>/dev/null; wait $$VIT_PID 2>/dev/null; true
 	prek install
 	@echo "✓ Ready. Run 'make dev' to start."
 
@@ -27,6 +29,8 @@ db-generate:
 	pnpm -w run db:generate
 db-studio:
 	pnpm -w run db:studio
+db-seed:
+	pnpm -w run db:seed
 
 # Quality gates
 check: lint typecheck
@@ -37,11 +41,15 @@ fix:
 typecheck:
 	pnpm -w run typecheck
 
+# Unit / integration tests (vitest, uses dev database on port 5432)
+test-unit:
+	pnpm --filter @project/api test
+
 # BDD Tests (uses separate test database on port 5433)
 test:
-	cd e2e && npx bddgen && npx playwright test
+	cd e2e && pnpm exec bddgen && pnpm exec playwright test
 test-ui:
-	cd e2e && npx bddgen && npx playwright test --ui
+	cd e2e && pnpm exec bddgen && pnpm exec playwright test --ui
 
 # Cleanup
 clean:

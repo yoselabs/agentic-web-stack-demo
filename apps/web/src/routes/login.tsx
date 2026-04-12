@@ -1,6 +1,16 @@
+import { Button } from "@project/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@project/ui/components/card";
+import { Input } from "@project/ui/components/input";
+import { Label } from "@project/ui/components/label";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { signIn, signUp, useSession } from "#/lib/auth-client";
+import { signIn, signUp, useSession } from "#/features/auth/auth-client";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -50,61 +60,75 @@ function LoginPage() {
   if (session) return null;
 
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          {isSignUp ? "Create Account" : "Sign In"}
-        </h1>
+    <main className="flex min-h-screen items-center justify-center px-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">
+            {isSignUp ? "Create Account" : "Sign In"}
+          </CardTitle>
+          <CardDescription>
+            {isSignUp
+              ? "Enter your details to create an account"
+              : "Enter your credentials to sign in"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Min 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <input
-              type="text"
-              placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-            />
-          )}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 border rounded"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            className="w-full px-3 py-2 border rounded"
-          />
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+            <Button type="submit" className="w-full">
+              {isSignUp ? "Sign Up" : "Sign In"}
+            </Button>
+          </form>
 
-          <button
-            type="submit"
-            className="w-full px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-          >
-            {isSignUp ? "Sign Up" : "Sign In"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-gray-600">
-          {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-gray-800 underline"
-          >
-            {isSignUp ? "Sign In" : "Sign Up"}
-          </button>
-        </p>
-      </div>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-foreground underline underline-offset-4 hover:text-primary"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </button>
+          </p>
+        </CardContent>
+      </Card>
     </main>
   );
 }

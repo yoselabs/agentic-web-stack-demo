@@ -3,7 +3,7 @@ name: agentic-web-stack
 services:
   postgres:
     image: postgres:17
-    container_name: aws-postgres
+    container_name: agentic-postgres
     environment:
       POSTGRES_DB: agentic_web_stack
       POSTGRES_USER: postgres

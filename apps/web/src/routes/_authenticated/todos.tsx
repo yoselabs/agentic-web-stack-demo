@@ -1,6 +1,9 @@
+import { Button } from "@project/ui/components/button";
+import { Input } from "@project/ui/components/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/todos")({
   component: TodosPage,
@@ -18,7 +21,9 @@ function TodosPage() {
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.todo.list.queryFilter());
         setNewTitle("");
+        toast.success("Todo added");
       },
+      onError: () => toast.error("Failed to add todo"),
     }),
   );
 
@@ -27,6 +32,7 @@ function TodosPage() {
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.todo.list.queryFilter());
       },
+      onError: () => toast.error("Failed to update todo"),
     }),
   );
 
@@ -34,7 +40,9 @@ function TodosPage() {
     trpc.todo.delete.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.todo.list.queryFilter());
+        toast.success("Todo deleted");
       },
+      onError: () => toast.error("Failed to delete todo"),
     }),
   );
 
@@ -49,31 +57,26 @@ function TodosPage() {
       <h1 className="text-3xl font-bold mb-6">Todos</h1>
 
       <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
-        <input
+        <Input
           type="text"
           placeholder="Add a todo..."
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
-          className="flex-1 px-3 py-2 border rounded"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-        >
-          Add
-        </button>
+        <Button type="submit">Add</Button>
       </form>
 
       {todos.isLoading ? (
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       ) : todos.data?.length === 0 ? (
-        <p className="text-gray-500">No todos yet</p>
+        <p className="text-muted-foreground">No todos yet</p>
       ) : (
         <ul className="space-y-2">
           {todos.data?.map((todo) => (
             <li
               key={todo.id}
-              className="flex items-center gap-3 p-3 border rounded"
+              className="flex items-center gap-3 p-3 rounded-lg border"
             >
               <input
                 type="checkbox"
@@ -87,17 +90,18 @@ function TodosPage() {
                 className="h-4 w-4"
               />
               <span
-                className={`flex-1 ${todo.completed ? "line-through text-gray-400" : ""}`}
+                className={`flex-1 ${todo.completed ? "line-through text-muted-foreground" : ""}`}
               >
                 {todo.title}
               </span>
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => deleteTodo.mutate({ id: todo.id })}
-                className="text-sm text-red-500 hover:text-red-700"
+                className="text-destructive hover:text-destructive"
               >
                 Delete
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

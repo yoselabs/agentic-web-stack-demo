@@ -3,13 +3,13 @@ name: agentic-web-stack-test
 services:
   postgres:
     image: postgres:17
-    container_name: aws-postgres-test
+    container_name: ${TEST_CONTAINER:-agentic-postgres-test}
     environment:
       POSTGRES_DB: agentic_web_stack_test
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5432"
+      - "${TEST_PORT:-5433}:5432"
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:

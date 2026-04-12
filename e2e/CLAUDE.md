@@ -4,7 +4,7 @@
 
 1. **Write the Gherkin spec** in `features/<name>.feature`
 2. **Write step definitions** in `steps/<name>.ts`
-3. **Generate tests:** `npx bddgen` (generates `.features-gen/`)
+3. **Generate tests:** `pnpm exec bddgen` (generates `.features-gen/`)
 4. **Run:** `make test`
 5. **Implement** the feature code (tRPC routes, UI pages) until tests pass
 6. **Verify:** `make check && make test`

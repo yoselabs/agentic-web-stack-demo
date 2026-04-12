@@ -1,13 +1,12 @@
 import { defineConfig } from "@playwright/test";
 import { defineBddConfig } from "playwright-bdd";
 
+import { TEST_DATABASE_URL } from "./test-env.js";
+
 const testDir = defineBddConfig({
   features: "features/**/*.feature",
   steps: "steps/**/*.ts",
 });
-
-const TEST_DATABASE_URL =
-  "postgresql://postgres:postgres@localhost:5433/agentic_web_stack_test";
 
 export default defineConfig({
   testDir,

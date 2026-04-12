@@ -163,7 +163,7 @@ AI guidance is split across directories — loaded only when relevant:
 Installed libraries ship SKILL.md files with setup guides and common mistakes:
 
 ```bash
-npx @tanstack/intent list   # discovers 41 skills from 9 packages
+pnpm exec @tanstack/intent list   # discovers 41 skills from 9 packages
 ```
 
 The agent reads the relevant SKILL.md before modifying library integrations.

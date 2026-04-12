@@ -7,10 +7,10 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 
 ## Architecture — Scaling to Medium Projects
 
-- [ ] **[template]** Feature-Sliced Design (FSD) — organize frontend by `features/`, `entities/`, `shared/` layers instead of flat route files. Critical for 10+ page apps.
+- [x] **[template]** Feature-Sliced Design (FSD) — `features/`, `widgets/`, `shared/` layers with TanStack Router file-based routes as thin shells
 - [ ] **[recipe]** API versioning — namespace tRPC routers by version when breaking changes needed
 - [ ] **[recipe]** Module boundaries — enforce import rules between packages (no circular deps)
-- [ ] **[template]** Database seeding — `prisma/seed.ts` for dev/demo data, `make db-seed` command
+- [x] **[template]** Database seeding — `scripts/seed.ts` + `make db-seed` (demo user + sample todos via Better-Auth API)
 
 ## Auth
 
@@ -57,8 +57,8 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 
 ## Monitoring & Observability
 
-- [ ] **[template]** Structured logging — `pino` for JSON logs in production, pretty in dev
-- [ ] **[template]** Health check endpoint — `/health` returning DB connectivity + uptime
+- [x] **[template]** Structured logging — `pino` for JSON logs in production, pretty in dev
+- [x] **[template]** Health check endpoint — `/health` returning DB connectivity + uptime
 - [ ] **[recipe]** Error tracking — Sentry (has Hono SDK)
 - [ ] **[recipe]** Analytics — PostHog or Plausible
 - [ ] **[recipe]** OpenTelemetry — distributed tracing across Hono + tRPC
@@ -66,7 +66,7 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 
 ## Infrastructure
 
-- [ ] **[template]** CI pipeline (GitHub Actions) — `make check` + `make test` on PRs
+- [x] **[template]** CI pipeline (GitHub Actions) — lint + typecheck + BDD tests on PRs
 - [ ] **[recipe]** Docker app containers — Dockerfiles for apps/web and apps/server
 - [ ] **[recipe]** Production docker-compose — full stack with app containers + Postgres + Traefik
 - [ ] **[recipe]** Multi-environment config — dev/staging/prod env var management
@@ -75,29 +75,32 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 ## Security
 
 - [x] ~~Security audit history~~ — `agent-harness security-audit-history` clean, no leaked secrets
-- [ ] **[template]** Rate limiting — Hono built-in rate limiter on auth + API endpoints
-- [ ] **[template]** Security headers — CSP, X-Frame-Options, HSTS via Hono middleware
+- [ ] **[recipe]** Rate limiting — in-memory rate limiter causes test flakiness, real apps need Redis-backed solutions (`@upstash/ratelimit`)
+- [x] **[template]** Security headers — CSP, X-Frame-Options, HSTS via Hono secureHeaders middleware
 - [ ] **[recipe]** CSRF protection — for custom forms beyond Better-Auth
 - [ ] **[recipe]** Input sanitization — sanitize HTML in user-generated content (DOMPurify)
 - [ ] **[recipe]** Row-level security — Prisma middleware to enforce user/org data isolation
 
 ## Quality & Testing
 
-- [ ] **[template]** Integration tests — Vitest + vitest-environment-prisma-postgres for tRPC route testing
-- [ ] **[template]** Add `packageManager` field for strict pnpm version
+- [x] **[template]** Integration tests — Vitest with tRPC callerFactory for direct procedure testing
+- [x] **[template]** Worktree-compatible testing — container name + port derived from directory MD5 hash (range 5400-5499)
+- [x] **[template]** Add `packageManager` field for strict pnpm version
 - [ ] **[recipe]** Visual regression testing — Playwright screenshot comparison
 - [ ] **[recipe]** Load testing — k6 or Artillery for API performance baseline
 - [ ] **[recipe]** Contract testing — ensure tRPC client/server stay in sync across deploys
 
 ## UI / UX
 
-- [ ] **[template]** shadcn/ui base components — Button, Input, Card, Label, Dialog, Select, Dropdown
-- [ ] **[template]** Error pages — 404, 500 with TanStack Router `notFoundComponent` / `errorComponent`
-- [ ] **[template]** Loading states — `pendingComponent` on routes with data loading
-- [ ] **[template]** Toast notifications — Sonner for success/error feedback on mutations
-- [ ] **[template]** Responsive nav — mobile hamburger menu for _authenticated layout
+- [x] **[template]** shadcn/ui base components — Button, Input, Card, Label + CSS theme variables (Tailwind v4)
+- [x] **[template]** Error pages — 404, 500 with TanStack Router `notFoundComponent` / `errorComponent`
+- [x] **[template]** Loading states — `defaultPendingMs`/`defaultPendingMinMs` on router (routes use React Query, not loaders)
+- [x] **[template]** Toast notifications — Sonner for success/error feedback on mutations
+- [x] **[template]** Layout components — Logo, Navbar (desktop + mobile Sheet hamburger), UserBlock extracted from `_authenticated` layout
 - [ ] **[recipe]** Dark mode — Tailwind dark mode with theme toggle + localStorage persistence
 - [ ] **[recipe]** Form library — TanStack Form or react-hook-form for complex forms with validation
+- [ ] **[template]** Responsive design — viewport meta, fluid layouts, mobile breakpoint testing, Playwright viewport assertions
+- [ ] **[recipe]** Drag and drop — `@dnd-kit/core` for sortable lists, kanban boards, tree reordering (too app-specific for template)
 
 ## AI Features
 
@@ -119,7 +122,7 @@ Items marked **[recipe]** should be documented as patterns — added per-project
 
 ## Developer Experience
 
-- [ ] **[template]** Route tree generation fix — replace start/kill vite hack in `make setup`
+- [x] **[template]** Route tree generation fix — wait for routeTree.gen.ts instead of fixed sleep
 - [ ] **[recipe]** API documentation — auto-generated from tRPC router types (trpc-openapi)
 - [ ] **[recipe]** `@tanstack/intent` — deeper investigation of AI skills system
 - [ ] **[recipe]** Database GUI — Prisma Studio alternative: Drizzle Studio, pgAdmin in docker-compose

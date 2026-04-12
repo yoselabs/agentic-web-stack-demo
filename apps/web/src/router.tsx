@@ -50,6 +50,8 @@ export function getRouter() {
     routeTree,
     scrollRestoration: true,
     defaultPreload: "intent",
+    defaultPendingMs: 200,
+    defaultPendingMinMs: 300,
     context: { trpc, queryClient },
   });
 
