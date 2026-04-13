@@ -143,10 +143,6 @@ then("I should be on the login page", async ({ page }) => {
   await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
 });
 
-then("I should be on the home page", async ({ page }) => {
-  await expect(page).toHaveURL(/\/$/, { timeout: 5000 });
-});
-
 then("I should be signed out", async ({ page }) => {
   // After sign-out, user lands on either / or /login (race between explicit nav and auth guard)
   await page.waitForURL(/\/(login)?$/, {

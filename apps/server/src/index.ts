@@ -151,8 +151,6 @@ app.use(
   }),
 );
 
-app.get("/", (c) => c.text("Agentic Web Stack API"));
-
 serve({ fetch: app.fetch, port: Number(process.env.PORT ?? 3001) }, (info) => {
   logger.info(`Server running at http://localhost:${info.port}`);
 });

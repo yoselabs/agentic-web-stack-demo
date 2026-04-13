@@ -6,12 +6,6 @@
   "exports": {
     ".": {
       "default": "./src/index.ts"
-    },
-    "./context": {
-      "default": "./src/context.ts"
-    },
-    "./router": {
-      "default": "./src/router.ts"
     }
   },
   "scripts": {
