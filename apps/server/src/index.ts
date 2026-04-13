@@ -1,6 +1,11 @@
 import { serve } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
-import { appRouter, createContext } from "@project/api";
+import {
+  appRouter,
+  createContext,
+  exportTodosAsCSV,
+  importTodosFromCSV,
+} from "@project/api";
 import { auth } from "@project/auth";
 import { db } from "@project/db";
 import { env } from "@project/env";
@@ -79,6 +84,57 @@ app.get("/health", async (c) => {
 // Better-Auth handler
 app.on(["POST", "GET"], "/api/auth/**", (c) => {
   return auth.handler(c.req.raw);
+});
+
+// Todo import — multipart CSV
+app.post("/api/todos/import", async (c) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+
+  const formData = await c.req.formData();
+  const file = formData.get("file");
+  if (!(file instanceof File))
+    return c.json({ error: "No file provided" }, 400);
+
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  if (file.size > MAX_FILE_SIZE) {
+    return c.json({ error: "File too large (max 10 MB)" }, 413);
+  }
+
+  const isCSV =
+    file.type === "text/csv" ||
+    file.type === "application/vnd.ms-excel" ||
+    file.name.endsWith(".csv");
+  if (!isCSV) {
+    return c.json({ error: "Only CSV files are accepted" }, 400);
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  try {
+    const result = await db.$transaction((tx) =>
+      importTodosFromCSV(tx, session.user.id, buffer),
+    );
+    return c.json(result, 201);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Import failed";
+    return c.json({ error: message }, 400);
+  }
+});
+
+// Todo export — CSV download
+app.get("/api/todos/export", async (c) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+
+  const csv = await exportTodosAsCSV(db, session.user.id);
+
+  return new Response(csv, {
+    headers: {
+      "Content-Type": "text/csv",
+      "Content-Disposition": 'attachment; filename="todos.csv"',
+    },
+  });
 });
 
 // tRPC handler — pass session into context
