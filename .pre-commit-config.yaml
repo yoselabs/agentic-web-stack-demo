@@ -14,3 +14,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: typecheck
+        name: typecheck
+        entry: pnpm -w run typecheck
+        language: system
+        pass_filenames: false
+        always_run: true

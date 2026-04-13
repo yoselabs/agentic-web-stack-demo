@@ -61,8 +61,9 @@ model User {
 
 ## Prisma Client Export
 
-`src/index.ts` exports a singleton `db` with globalThis caching for dev hot-reload.
-Import as: `import { db } from "@project/db"`
+`src/index.ts` exports a singleton `db` with globalThis caching for dev hot-reload, plus a wildcard re-export of `@prisma/client` (all generated types, enums, `Prisma` namespace, `PrismaClient`).
+
+Import as: `import { db, Prisma, MyEnum } from "@project/db"` — never import directly from `@prisma/client`
 
 ## Do Not
 

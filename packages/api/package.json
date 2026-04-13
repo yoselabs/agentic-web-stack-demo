@@ -6,12 +6,6 @@
   "exports": {
     ".": {
       "default": "./src/index.ts"
-    },
-    "./context": {
-      "default": "./src/context.ts"
-    },
-    "./router": {
-      "default": "./src/router.ts"
     }
   },
   "scripts": {
@@ -21,9 +15,12 @@
     "@project/auth": "workspace:*",
     "@project/db": "workspace:*",
     "@trpc/server": "^11.0.0",
+    "papaparse": "^5.5.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/papaparse": "^5.5.2",
     "vitest": "^4.1.4"
   }
 }

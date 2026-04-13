@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from "@project/db";
+import Papa from "papaparse";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
@@ -73,4 +74,53 @@ export async function deleteTodo(db: DbClient, userId: string, id: string) {
   return db.todo.delete({
     where: { id, userId },
   });
+}
+
+export async function importTodosFromCSV(
+  db: DbClient,
+  userId: string,
+  csvData: Buffer,
+): Promise<{ count: number }> {
+  const text = csvData.toString("utf-8");
+  const parsed = Papa.parse<Record<string, string>>(text, {
+    header: true,
+    skipEmptyLines: true,
+  });
+
+  if (!parsed.meta.fields?.includes("title")) {
+    throw new Error("CSV must have a 'title' column");
+  }
+
+  const titles = parsed.data.map((row) => row.title).filter(Boolean);
+  if (titles.length === 0) {
+    throw new Error("CSV must have a 'title' column with at least one value");
+  }
+
+  await lockActiveTodos(db, userId);
+  await db.todo.updateMany({
+    where: { userId, completed: false },
+    data: { position: { increment: titles.length } },
+  });
+  await db.todo.createMany({
+    data: titles.map((title, i) => ({
+      title,
+      userId,
+      position: i,
+    })),
+  });
+
+  return { count: titles.length };
+}
+
+export async function exportTodosAsCSV(
+  db: DbClient,
+  userId: string,
+): Promise<string> {
+  const todos = await listTodos(db, userId);
+  if (todos.length === 0) {
+    return "title,completed";
+  }
+  return Papa.unparse(
+    todos.map((t) => ({ title: t.title, completed: t.completed })),
+  );
 }

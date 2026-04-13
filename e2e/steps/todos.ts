@@ -1,7 +1,13 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { expect } from "@playwright/test";
 import { createBdd } from "playwright-bdd";
 
 const { Given: given, When: when, Then: then } = createBdd();
+
+const stepsDir = dirname(fileURLToPath(import.meta.url));
+
+let lastDownloadPath: string | null = null;
 
 given("I have a todo {string}", async ({ page }, title: string) => {
   await page.getByPlaceholder("Add a todo...").fill(title);
@@ -92,5 +98,33 @@ then(
     expect(firstIndex).toBeGreaterThanOrEqual(0);
     expect(secondIndex).toBeGreaterThanOrEqual(0);
     expect(firstIndex).toBeLessThan(secondIndex);
+  },
+);
+
+when("I import todos from {string}", async ({ page }, filename: string) => {
+  const filePath = resolve(stepsDir, `../fixtures/${filename}`);
+  const input = page.locator('input[type="file"]');
+  await input.setInputFiles(filePath);
+  await page.waitForLoadState("networkidle");
+});
+
+when("I export todos", async ({ page }) => {
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export CSV" }).click();
+  const download = await downloadPromise;
+  const path = await download.path();
+  if (!path) throw new Error("Download failed — no file path");
+  lastDownloadPath = path;
+});
+
+then(
+  "the downloaded file should contain {string}",
+  async ({ page: _page }, text: string) => {
+    if (!lastDownloadPath)
+      throw new Error("No download captured — run download step first");
+    const { readFile } = await import("node:fs/promises");
+    const content = await readFile(lastDownloadPath, "utf-8");
+    expect(content).toContain(text);
+    lastDownloadPath = null;
   },
 );

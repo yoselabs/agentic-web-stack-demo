@@ -4,6 +4,8 @@ import {
   completeTodo,
   createTodo,
   deleteTodo,
+  exportTodosAsCSV,
+  importTodosFromCSV,
   listTodos,
   reorderTodos,
 } from "../todo.js";
@@ -125,6 +127,67 @@ describe("todo service", () => {
 
     const todos = await listTodos(db, TEST_USER_ID);
     expect(todos.find((t) => t.id === todo.id)).toBeUndefined();
+  });
+
+  it("imports todos from CSV with title column", async () => {
+    const csv = Buffer.from("title\nBuy milk\nWalk the dog");
+    const result = await db.$transaction((tx) =>
+      importTodosFromCSV(tx, TEST_USER_ID, csv),
+    );
+    expect(result.count).toBe(2);
+
+    const todos = await listTodos(db, TEST_USER_ID);
+    const active = todos.filter((t) => !t.completed);
+    createdTodoIds.push(...active.map((t) => t.id));
+    expect(active[0]?.title).toBe("Buy milk");
+    expect(active[1]?.title).toBe("Walk the dog");
+  });
+
+  it("rejects CSV without title column", async () => {
+    const csv = Buffer.from("name,email\nAlice,a@b.com");
+    await expect(
+      db.$transaction((tx) => importTodosFromCSV(tx, TEST_USER_ID, csv)),
+    ).rejects.toThrow("title");
+  });
+
+  it("ignores extra columns beyond title", async () => {
+    const csv = Buffer.from("title,priority,notes\nTest todo,high,some note");
+    const result = await db.$transaction((tx) =>
+      importTodosFromCSV(tx, TEST_USER_ID, csv),
+    );
+    expect(result.count).toBe(1);
+
+    const todos = await listTodos(db, TEST_USER_ID);
+    const imported = todos.filter((t) => t.title === "Test todo");
+    createdTodoIds.push(...imported.map((t) => t.id));
+    expect(todos.some((t) => t.title === "Test todo")).toBe(true);
+  });
+
+  it("exports todos as CSV with title and completed columns", async () => {
+    const todo = await db.$transaction((tx) =>
+      createTodo(tx, TEST_USER_ID, "Export me"),
+    );
+    createdTodoIds.push(todo.id);
+
+    const csv = await exportTodosAsCSV(db, TEST_USER_ID);
+    expect(csv).toContain("title");
+    expect(csv).toContain("completed");
+    expect(csv).toContain("Export me");
+  });
+
+  it("exports empty CSV with headers when no todos exist", async () => {
+    const csv = await exportTodosAsCSV(db, TEST_USER_ID);
+    expect(csv).toBe("title,completed");
+  });
+
+  it("properly escapes titles containing commas", async () => {
+    const todo = await db.$transaction((tx) =>
+      createTodo(tx, TEST_USER_ID, "Buy eggs, milk, bread"),
+    );
+    createdTodoIds.push(todo.id);
+
+    const csv = await exportTodosAsCSV(db, TEST_USER_ID);
+    expect(csv).toContain('"Buy eggs, milk, bread"');
   });
 
   it("sorts completed todos after active ones", async () => {
