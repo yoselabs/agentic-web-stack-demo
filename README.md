@@ -10,8 +10,8 @@
     TanStack Start · Hono · tRPC · Prisma · Better-Auth · Tailwind · playwright-bdd
   </p>
   <p align="center">
-    <a href="https://github.com/agentic-eng/agentic-web-stack/actions"><img src="https://github.com/agentic-eng/agentic-web-stack/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-    <a href="https://github.com/agentic-eng/agentic-web-stack/blob/main/LICENSE"><img src="https://img.shields.io/github/license/agentic-eng/agentic-web-stack.svg" alt="License"></a>
+    <a href="https://github.com/yoselabs/agentic-web-stack/actions"><img src="https://github.com/yoselabs/agentic-web-stack/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://github.com/yoselabs/agentic-web-stack/blob/main/LICENSE"><img src="https://img.shields.io/github/license/yoselabs/agentic-web-stack.svg" alt="License"></a>
   </p>
   <p align="center">
     <a href="#quick-start">Quick Start</a> · <a href="#stack">Stack</a> · <a href="#architecture">Architecture</a> · <a href="#bdd-workflow">BDD Workflow</a> · <a href="#ai-agent-features">AI Agent Features</a>
@@ -43,7 +43,7 @@ AI agents write better code when the stack is mainstream, type-safe, and quality
 
 ```bash
 # Clone the template
-gh repo create my-app --template agentic-eng/agentic-web-stack
+gh repo create my-app --template yoselabs/agentic-web-stack
 cd my-app
 
 # One command setup (installs deps, starts Postgres, pushes schema, installs hooks)
@@ -75,7 +75,7 @@ Open http://localhost:3000 — sign up, create todos, explore.
 | **BDD/E2E** | playwright-bdd | Gherkin specs → Playwright tests |
 | **Quality** | agent-harness + Biome | 13 automated checks per commit |
 
-Every component is replaceable — alternatives documented in the [ADR](https://github.com/agentic-eng/agentic-web-stack/wiki/ADR).
+Every component is replaceable — alternatives documented in the [ADR](https://github.com/yoselabs/agentic-web-stack/wiki/ADR).
 
 ## Architecture
 
@@ -237,4 +237,4 @@ MIT
 
 <sub>Built for AI agents, by AI agents, with human supervision.</sub>
 
-<sub>Created by [Denis Tomilin](https://github.com/iorlas) · [agentic-eng](https://github.com/agentic-eng)</sub>
+<sub>Created by [Denis Tomilin](https://github.com/iorlas) · [yoselabs](https://github.com/yoselabs)</sub>

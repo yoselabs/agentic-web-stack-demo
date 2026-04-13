@@ -2,7 +2,7 @@
 
 ## Context
 
-Round 1 of the agentic-web-stack stress test is complete. A Team Retrospective Board was built on top of the template. All results are on the `feat/retro-board` branch. The template (`agentic-eng/agentic-web-stack`) has since been updated to address feedback from Round 1.
+Round 1 of the agentic-web-stack stress test is complete. A Team Retrospective Board was built on top of the template. All results are on the `feat/retro-board` branch. The template (`yoselabs/agentic-web-stack`) has since been updated to address feedback from Round 1.
 
 ## Your Mission
 

@@ -2,16 +2,16 @@
 
 Read `HANDOVER.md` — it has full context. This is Round N of a template stress-test experiment.
 
-The template repo (`agentic-eng/agentic-web-stack`) may have been updated with fixes from prior rounds. Pull those updates into `main`, then build the retro board feature from scratch using `REQUIREMENTS.md`. Measure everything — tokens, cost, time, issues — and compare against prior rounds.
+The template repo (`yoselabs/agentic-web-stack`) may have been updated with fixes from prior rounds. Pull those updates into `main`, then build the retro board feature from scratch using `REQUIREMENTS.md`. Measure everything — tokens, cost, time, issues — and compare against prior rounds.
 
 Don't copy code from prior rounds. Let subagents build fresh. That's the whole point.
 
 ## Repo Structure
 
-- `main` = template (`agentic-eng/agentic-web-stack`) + experiment scaffolding (HANDOVER, REQUIREMENTS, prompts/)
+- `main` = template (`yoselabs/agentic-web-stack`) + experiment scaffolding (HANDOVER, REQUIREMENTS, prompts/)
 - `feat/retro-board-rN` = each round's implementation (one branch per round, never deleted)
-- Remote `template` points to `agentic-eng/agentic-web-stack`
-- Remote `origin` points to `agentic-eng/agentic-web-stack-demo`
+- Remote `template` points to `yoselabs/agentic-web-stack`
+- Remote `origin` points to `yoselabs/agentic-web-stack-demo`
 
 Main stays in sync with the template. Scaffolding files (HANDOVER.md, REQUIREMENTS.md, prompts/) don't exist in the template, so merges are clean.
 

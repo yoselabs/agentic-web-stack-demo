@@ -4,7 +4,7 @@ Read all `EXPERIMENT*.yaml` files in this repo, especially the latest one. Extra
 
 ## Context
 
-- This repo (`agentic-web-stack-demo`) is a consumer of the template at `agentic-eng/agentic-web-stack`
+- This repo (`agentic-web-stack-demo`) is a consumer of the template at `yoselabs/agentic-web-stack`
 - The template remote is already configured: `git remote template`
 - Template fixes should be applied on a branch in the template repo, then merged
 
@@ -24,7 +24,7 @@ Read all `EXPERIMENT*.yaml` files in this repo, especially the latest one. Extra
 
 ```bash
 cd ~/Workspaces
-git clone https://github.com/agentic-eng/agentic-web-stack.git agentic-web-stack-template-fixes
+git clone https://github.com/yoselabs/agentic-web-stack.git agentic-web-stack-template-fixes
 cd agentic-web-stack-template-fixes
 git checkout -b fix/experiment-feedback-rN
 ```
