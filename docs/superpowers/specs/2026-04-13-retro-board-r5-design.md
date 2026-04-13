@@ -78,6 +78,7 @@ createBoard(db: DbClient, userId: string, title: string)
 getBoard(db: DbClient, userId: string, boardId: string)
   // findFirst where id + userId, include cards with votes
   // Transform: add voteCount + hasVoted(userId) per card
+  // Return shape: { ...board, cards: Array<Card & { voteCount: number, hasVoted: boolean }> }
   // Throw TRPCError NOT_FOUND if missing
 
 closeBoard(db: DbClient, userId: string, boardId: string)
@@ -97,7 +98,7 @@ deleteCard(db: DbClient, userId: string, cardId: string)
   // delete card
 
 toggleVote(db: DbClient, userId: string, cardId: string)
-  // Find card with board, verify board owned by user + OPEN — else NOT_FOUND
+  // Find card with board, verify board belongs to user (boards are single-user, so owner = only accessor) + OPEN — else NOT_FOUND
   // Check existing vote: delete if exists, create if not
   // Return { voted: boolean }
 ```
@@ -123,7 +124,7 @@ card.delete   — mutation, input { id: string } → $transaction → deleteCard
 vote.toggle   — mutation, input { cardId: string } → $transaction → toggleVote
 ```
 
-Both routers merged into `appRouter` in `packages/api/src/root.ts`. `vote.toggle` lives in the card router (single procedure, tightly coupled to cards).
+Both routers merged into `appRouter` in `packages/api/src/router.ts`. `vote.toggle` lives in the card router (single procedure, tightly coupled to cards).
 
 ## Frontend Hooks
 
@@ -157,9 +158,13 @@ List page. Shows user's boards with title, status badge (Open/Closed), card coun
 Form with title input + submit button. On success, navigates to `/boards/$boardId`. Disabled button while submitting.
 
 ### `$boardId.tsx` — `/boards/$boardId`
-3-column layout: Went Well | To Improve | Action Items. Each column shows its cards with vote button (count + voted state) and delete button (owner only). Card creation form per column (text input + add button). Close board button in header (owner only). Closed boards: forms hidden, vote buttons disabled, visual "Closed" indicator. Loading spinner while fetching. "Board not found" for missing/unauthorized.
+3-column layout: Went Well | To Improve | Action Items. Each column rendered as a `<section>` with an `<h2>` heading matching the category name. Each column shows its cards with vote button (count + voted state) and delete button (owner only). Card creation form per column (text input with placeholder "Add a card..." + add button). Close board button in header (owner only). Closed boards: forms hidden, vote buttons disabled, visual "Closed" Badge. Loading spinner while fetching. "Board not found" text for missing/unauthorized boards.
 
 All routes are thin shells using hook extraction pattern.
+
+**Navbar:** Add a "Boards" link to the existing navbar component so the feature is reachable from the UI.
+
+**UI component prerequisites:** Install Badge component (`pnpm dlx shadcn@latest add badge`) for status badges before frontend work.
 
 ## BDD Scenarios
 
@@ -184,12 +189,18 @@ Step definitions in `e2e/steps/boards.ts`, written after UI exists. Locators use
 ## Execution Plan (2 Mega-Tasks)
 
 ### Task 1: Backend
-Schema (board.prisma + User relations) → `make db-push` → Services (board.ts + card.ts) → Routers (board.ts + card.ts) → Register in root.ts → `make check`
+Schema (board.prisma + User relations) → `make db-push` → Services (board.ts + card.ts) → Routers (board.ts + card.ts) → Register in `router.ts` → `make check`
+
+Vitest tests are intentionally skipped — BDD scenarios are the primary validation for this stress test.
 
 ### Task 2: Frontend
-Hooks (use-board-detail.ts + use-board-list.ts) → Routes (index, new, $boardId) → `make routes` → BDD feature file + step definitions → `make check` → `make test`
+Install Badge component → Hooks (use-board-detail.ts + use-board-list.ts) → Routes (index, new, $boardId) → Navbar link → `make routes` → BDD feature file + step definitions + `pnpm exec bddgen` → `make check` → `make test`
 
-Orchestrator handles between-task: `make routes` if needed, `as string` cast cleanup, `make check` verification.
+### Orchestrator (between tasks)
+- `make routes` if route tree needs regeneration
+- `as string` cast cleanup once all routes exist
+- `make check` verification after each task
+- Install Badge component if not done by frontend subagent
 
 ## Success Criteria
 
