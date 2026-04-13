@@ -7,6 +7,7 @@ import { Button } from "@project/ui/components/button";
 import { Input } from "@project/ui/components/input";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useRef } from "react";
 import { CompletedTodoItem } from "#/features/todo/completed-todo-item";
 import { SortableTodoItem } from "#/features/todo/sortable-todo-item";
 import { useTodos } from "#/features/todo/use-todos";
@@ -30,11 +31,42 @@ function TodosPage() {
     deleteTodo,
     handleSubmit,
     handleDragEnd,
+    importTodos,
+    exportTodos,
   } = useTodos(trpc, queryClient);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <h1 className="text-3xl font-bold mb-6">Todos</h1>
+
+      <div className="flex gap-2 mb-4">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              importTodos.mutate(file);
+              e.target.value = "";
+            }
+          }}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importTodos.isPending}
+        >
+          {importTodos.isPending ? "Importing..." : "Import CSV"}
+        </Button>
+        <Button variant="outline" size="sm" onClick={exportTodos}>
+          Export CSV
+        </Button>
+      </div>
 
       <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
         <Input

@@ -14,6 +14,8 @@ import { useState } from "react";
 import { flushSync } from "react-dom";
 import { toast } from "sonner";
 
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+
 export function useTodos(
   trpc: TRPCOptionsProxy<AppRouter>,
   queryClient: QueryClient,
@@ -110,6 +112,45 @@ export function useTodos(
     reorderTodos.mutate({ ids: reordered.map((t) => t.id) });
   };
 
+  const importTodos = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_URL}/api/todos/import`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Import failed");
+      }
+      return res.json() as Promise<{ count: number }>;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(trpc.todo.list.queryFilter());
+      toast.success(`Imported ${data.count} todos`);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const exportTodos = async () => {
+    const res = await fetch(`${API_URL}/api/todos/export`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      toast.error("Export failed");
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "todos.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return {
     newTitle,
     setNewTitle,
@@ -122,5 +163,7 @@ export function useTodos(
     deleteTodo,
     handleSubmit,
     handleDragEnd,
+    importTodos,
+    exportTodos,
   };
 }
