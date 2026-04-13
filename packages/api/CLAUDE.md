@@ -1,38 +1,72 @@
 # packages/api — tRPC Router + Context
 
-## Adding a New Router
+## Architecture: Router → Service → Prisma
 
-1. Create a file in `src/routers/<name>.ts` with a sub-router
-2. Import and mount it in `src/router.ts`
-3. Use `publicProcedure` for unauthenticated routes, `protectedProcedure` for authenticated
-4. Add input validation with Zod
-5. Run `make check` — types propagate to apps/web automatically
+```
+routers/todo.ts              ← Thin: Zod validation + protectedProcedure + $transaction → service
+services/todo.ts             ← Business logic: accepts db|tx, owns domain rules
+services/__tests__/todo.test.ts  ← Service unit tests (direct function calls)
+__tests__/todo.test.ts       ← Router integration tests (createCaller, auth guards)
+```
 
-### Example: Add a posts router
+**Routers** are wiring only — input validation (Zod), auth (`protectedProcedure`), and transaction boundaries.
 
-Create `src/routers/post.ts`:
+**Services** are pure functions that accept `PrismaClient | Prisma.TransactionClient` as first argument. They never receive tRPC context (`ctx`), never start transactions, and never import from tRPC.
+
+## Adding a New Feature
+
+1. Create `src/services/<name>.ts` with business logic functions
+2. Create `src/services/__tests__/<name>.test.ts` with service unit tests (TDD)
+3. Create `src/routers/<name>.ts` with thin router wiring
+4. Mount in `src/router.ts`
+5. Create/update `src/__tests__/<name>.test.ts` for router-level tests (auth, validation)
+6. Run `make check` — types propagate to apps/web automatically
+
+### Example: Add a posts feature
+
+Create service `src/services/post.ts`:
+
+```typescript
+import { Prisma, type PrismaClient } from "@project/db";
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
+
+export async function listPosts(db: DbClient, userId: string) {
+  return db.post.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function createPost(db: DbClient, userId: string, title: string) {
+  return db.post.create({
+    data: { title, userId },
+  });
+}
+```
+
+Create router `src/routers/post.ts`:
 
 ```typescript
 import { z } from "zod";
+import { createPost, listPosts } from "../services/post.js";
 import { protectedProcedure, router } from "../trpc.js";
 
 export const postRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.post.findMany({
-      where: { userId: ctx.session.user.id },
-    });
+  list: protectedProcedure.query(({ ctx }) => {
+    return listPosts(ctx.db, ctx.session.user.id);
   }),
   create: protectedProcedure
     .input(z.object({ title: z.string().min(1) }))
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.post.create({
-        data: { title: input.title, userId: ctx.session.user.id },
-      });
+    .mutation(({ ctx, input }) => {
+      return ctx.db.$transaction((tx) =>
+        createPost(tx, ctx.session.user.id, input.title),
+      );
     }),
 });
 ```
 
-Then mount in `src/router.ts`:
+Mount in `src/router.ts`:
 
 ```typescript
 import { postRouter } from "./routers/post.js";
@@ -43,12 +77,62 @@ export const appRouter = router({
 });
 ```
 
+## Transaction Rules
+
+- **All mutations:** router wraps in `db.$transaction((tx) => ...)` — even single-write ops, so you never forget when the service grows
+- **All reads:** router calls service with `db` directly (no transaction)
+- **Cross-service:** router wraps multiple service calls in one `$transaction`
+- **Race conditions:** service uses `SELECT FOR UPDATE` inside the tx it receives
+
+```typescript
+// Race-safe pattern inside a service function
+await db.$queryRaw`
+  SELECT id FROM "Todo" WHERE "userId" = ${userId} FOR UPDATE
+`;
+```
+
+## N+1 Prevention
+
+- **Reads:** always use `include`/`select` for related data, never loop queries
+- **Bulk writes:** use VALUES + UPDATE join pattern:
+
+```typescript
+const pairs = ids.map((id, i) => Prisma.sql`(${id}::text, ${i}::integer)`);
+await db.$executeRaw`
+  UPDATE "Todo" AS t
+  SET "position" = d.new_position
+  FROM (VALUES ${Prisma.join(pairs, ",")}) AS d(id, new_position)
+  WHERE t.id = d.id AND t."userId" = ${userId}
+`;
+```
+
+## Frontend Type Contracts
+
+`@project/api` re-exports type inference utilities so the frontend derives types from the server:
+
+```typescript
+// Shared types for component props (from @project/api)
+import type { AppRouter, inferRouterOutputs } from "@project/api";
+type RouterOutput = inferRouterOutputs<AppRouter>;
+export type Todo = RouterOutput["todo"]["list"][number];
+
+// Proxy-level types inside components (v11 — from @trpc/tanstack-react-query)
+import type { inferInput, inferOutput } from "@trpc/tanstack-react-query";
+type CreateInput = inferInput<typeof trpc.todo.create>;
+type ListOutput = inferOutput<typeof trpc.todo.list>;
+```
+
+Never define frontend types manually — derive them from the router so they stay in sync with schema changes.
+
 ## File Structure
 
 - `src/trpc.ts` — single `initTRPC.create()`, exports `router`, `publicProcedure`, `protectedProcedure`
 - `src/context.ts` — `createContext()` receives session from Hono, exports `Context` type
 - `src/router.ts` — `appRouter` merging sub-routers, exports `AppRouter` type
-- `src/routers/` — one file per domain sub-router (e.g., `todo.ts`, `post.ts`)
+- `src/routers/` — one file per domain sub-router (thin wiring only)
+- `src/services/` — one file per domain service (business logic)
+- `src/services/__tests__/` — service unit tests
+- `src/__tests__/` — router integration tests
 - `src/index.ts` — re-exports everything
 
 ## Context
@@ -64,3 +148,6 @@ export const appRouter = router({
 - Skip input validation — always use `.input(z.object({...}))` for mutations
 - Access `ctx.session.user` in `publicProcedure` — it's nullable, use `protectedProcedure`
 - Name procedures `then`, `call`, or `apply` — reserved by JavaScript Proxy
+- Put business logic in routers — delegate to service functions
+- Call `db.$transaction` inside a service — the router owns transaction boundaries
+- Pass tRPC `ctx` to services — extract fields and pass as plain arguments

@@ -32,7 +32,8 @@ src/
    - Authenticated page: `src/routes/_authenticated/settings.tsx`
 2. Export `Route` using `createFileRoute`
 3. The route tree regenerates automatically on `vite dev`
-   If the dev server isn't running when you add/remove route files, start `make dev` to regenerate. There is no standalone generation command.
+   If the dev server isn't running, run `make routes` to regenerate without starting the full dev server.
+   When adding multiple routes, create all route files first, then run `make routes` once.
 
 ### Public page
 
@@ -90,9 +91,51 @@ function MyComponent() {
 }
 ```
 
+### Hook Extraction Pattern
+
+When a route has 2+ mutations or the return object would have 5+ properties, extract orchestration into a `features/*/use-*.ts` hook. The route becomes a thin shell.
+
+```tsx
+// features/todo/use-todos.ts — orchestration hook
+export function useTodos(
+  trpc: TRPCOptionsProxy<AppRouter>,
+  queryClient: QueryClient,
+) {
+  const todos = useQuery(trpc.todo.list.queryOptions());
+  const createTodo = useMutation(trpc.todo.create.mutationOptions({ ... }));
+  // ... all mutations, handlers, derived state
+  return { todos, createTodo, handleSubmit, handleDragEnd, ... };
+}
+
+// routes/_authenticated/todos.tsx — thin shell
+function TodosPage() {
+  const { trpc } = Route.useRouteContext();
+  const queryClient = useQueryClient();
+  const { todos, handleSubmit, ... } = useTodos(trpc, queryClient);
+  return <main>...</main>;
+}
+```
+
+The hook receives `trpc` and `queryClient` as parameters because `Route.useRouteContext()` can only be called inside the route component.
+
 ### Optimistic Updates
 
-For instant UI feedback before the server confirms, see the drag-and-drop reorder handler in `src/routes/_authenticated/todos.tsx` — it uses `queryClient.setQueryData` to update the cache immediately, with `onError` invalidation as fallback.
+For instant UI feedback before the server confirms, see the drag-and-drop reorder handler in `src/features/todo/use-todos.ts` (`handleDragEnd`) — it uses `queryClient.setQueryData` to update the cache immediately, with `onError` invalidation as fallback.
+
+When using `onMutate` callbacks with tRPC, define explicit types for the data shape — tRPC's type inference breaks on the callback parameter:
+
+```tsx
+// Define explicit types matching your router's return shape
+type TodoItem = { id: string; title: string; position: number };
+type TodoList = TodoItem[];
+
+const previous = queryClient.getQueryData<TodoList>(trpc.todo.list.queryFilter().queryKey);
+queryClient.setQueryData<TodoList>(trpc.todo.list.queryFilter().queryKey, (old) => {
+  if (!old) return old;
+  // TypeScript now knows old is TodoList, not unknown
+  return old.map((item) => (item.id === targetId ? { ...item, position: newPos } : item));
+});
+```
 
 ## Auth Client
 

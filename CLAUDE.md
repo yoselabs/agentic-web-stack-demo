@@ -22,24 +22,27 @@ Each directory with a CLAUDE.md has area-specific guidance. Read it before worki
 - `make check` — full quality gate: `agent-harness lint` + `tsc -b`
 - `make fix` — auto-fix lint issues
 - `make test` — BDD tests (separate test DB on port 5433)
+- `make routes` — regenerate TanStack Router route tree without starting dev server
 - `make db-push` — push Prisma schema to database
 - `make db-generate` — regenerate Prisma client
 
 Pre-commit hooks run `agent-harness fix` then `agent-harness lint` automatically.
 Never truncate lint or test output — read the full error.
 
-## Development Workflow (BDD-first)
+## Development Workflow (BDD-first, Vertical Slices)
 
-When adding features, write the Gherkin spec BEFORE implementation:
+Features are built as vertical slices within domain groups. A domain group is a cluster of related Prisma models that serve one user-facing capability (e.g., Board + Column + Card).
 
-1. **Write Gherkin feature file** — define the behavior contract (will fail)
-2. **Write step definitions** — implement test helpers
-3. **Implement backend** — tRPC routes with unit/integration TDD (Vitest)
-4. **Implement frontend** — UI components
-5. **Run BDD tests** — watch them go green (`make test`)
-6. **Quality gate** — `make check` must pass before claiming done
+For each domain group:
 
-The Gherkin spec is the source of truth for "what does done look like." Never save BDD tests for last.
+1. **Write Gherkin scenarios** — behavior contract for ALL features in the domain group
+2. **Schema** — all Prisma models for the domain group, `make db-push`
+3. **Backend (batched)** — all services + routers + Vitest for the domain group → API GREEN
+4. **Frontend (per feature)** — hook + components + route + step defs + BDD → GREEN per feature
+
+Step definitions are written AFTER the UI exists (Phase 3), not before. The Gherkin spec is the source of truth, but step defs need real HTML to reference correct selectors.
+
+See `docs/superpowers/specs/2026-04-12-development-cycle-handover.md` for the full process spec.
 
 ## Package Naming
 
@@ -74,6 +77,9 @@ All workspace packages use `@project/*` prefix (e.g., `@project/api`, `@project/
 | Skip `prisma generate` after schema change | Stale types, runtime errors | Run `make db-push` (includes generate) |
 | `Link to` rejects not-yet-created routes | TanStack Router types from `routeTree.gen.ts` | Use `to={"/path" as string}` temporarily, remove once route exists and `make dev` regenerates |
 | `//` in JSX text content | Biome `noCommentText` flags as comment | Wrap in expression: `<p>{"https://example.com"}</p>` |
+| `<Link>` wrapping `<Button>` | Nested `<a><button>` breaks accessibility and BDD click handlers | Use `<Button asChild><Link to="...">Text</Link></Button>` — renders single `<a>` element |
+| `setQueryData` callback type errors with tRPC | tRPC's `queryKey` type inference breaks on `onMutate` callback parameter | Define explicit types for query data shape (see optimistic updates guide in `apps/web/CLAUDE.md`) |
+| Use `PointerSensor` for DnD touch support | `PointerSensor` consumes Chrome DevTools simulated touch events, blocking `TouchSensor` | Use `MouseSensor` + `TouchSensor` instead of `PointerSensor` + `TouchSensor`, add `touch-action: none` to draggable items |
 
 ## Library Skills (@tanstack/intent)
 
