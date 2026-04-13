@@ -12,6 +12,7 @@ model User {
   sessions Session[]
   accounts Account[]
   todos    Todo[]
+  files    File[]
 }
 
 model Session {
