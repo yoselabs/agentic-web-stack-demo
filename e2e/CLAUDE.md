@@ -76,10 +76,10 @@ When I sign in with email "bob@test.com" and password "password123"
 
 ```gherkin
 # BAD — implementation detail (URL in Gherkin)
-And I navigate to "/files"
+And I navigate to "/todos"
 
 # GOOD — declarative (page name)
-And I am on the files page
+And I am on the todos page
 ```
 
 ### Scenario Structure
@@ -89,7 +89,7 @@ Feature: Feature Name
 
   Scenario: Descriptive behavior-focused name
     Given I am signed in as "unique-email@example.com"
-    And I am on the files page
+    And I am on the todos page
     When I do something
     Then I should see "expected result"
 ```
@@ -108,8 +108,8 @@ Use `Background` for steps shared by ALL scenarios in a feature. Keep it to 2-3 
 
 ```gherkin
 Background:
-  Given I am signed in as "files-user@example.com"
-  And I am on the files page
+  Given I am signed in as "todos-user@example.com"
+  And I am on the todos page
 ```
 
 Don't use Background if only some scenarios need the setup. Background should only contain Given steps.
@@ -119,7 +119,7 @@ Don't use Background if only some scenarios need the setup. Background should on
 Use when the **behavior is the same** but data varies. Every row must represent a genuinely different behavioral case.
 
 ```gherkin
-Scenario Outline: Reject invalid file types
+Scenario Outline: Reject invalid import file types
   When I upload a "<filetype>" file
   Then I should see "Only CSV files are accepted"
 

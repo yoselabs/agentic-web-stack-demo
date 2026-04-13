@@ -76,11 +76,6 @@ given("I am on the todos page", async ({ page }) => {
   await page.waitForLoadState("networkidle");
 });
 
-given("I am on the files page", async ({ page }) => {
-  await page.goto("/files");
-  await page.waitForLoadState("networkidle");
-});
-
 // --- When ---
 
 when(
