@@ -310,7 +310,7 @@ Update every call to `importTodosFromCSV` to pass `TEST_LIST_ID`:
 Update every call to `exportTodosAsCSV` to pass `TEST_LIST_ID`:
 - `exportTodosAsCSV(db, TEST_USER_ID)` → `exportTodosAsCSV(db, TEST_USER_ID, TEST_LIST_ID)`
 
-Add a new test:
+Add two new tests:
 
 ```typescript
 it("listTodos returns todoList via include", async () => {
@@ -322,6 +322,26 @@ it("listTodos returns todoList via include", async () => {
   const todos = await listTodos(db, TEST_USER_ID, TEST_LIST_ID);
   const found = todos.find((t) => t.id === todo.id);
   expect(found?.todoList?.name).toBe("Test List");
+});
+
+it("position scoping: creating in one list does not shift another list", async () => {
+  const listB = await db.todoList.create({
+    data: { name: "List B", userId: TEST_USER_ID },
+  });
+  const todoB = await db.$transaction((tx) =>
+    createTodo(tx, TEST_USER_ID, "B-item", listB.id),
+  );
+
+  // Create a todo in the primary list — should NOT shift List B
+  const todoA = await db.$transaction((tx) =>
+    createTodo(tx, TEST_USER_ID, "A-item", TEST_LIST_ID),
+  );
+  createdTodoIds.push(todoA.id, todoB.id);
+
+  const listBTodos = await listTodos(db, TEST_USER_ID, listB.id);
+  expect(listBTodos[0]?.position).toBe(0); // unchanged
+
+  await db.todoList.delete({ where: { id: listB.id } });
 });
 ```
 
@@ -728,6 +748,11 @@ Add after user creation:
 const list = await db.todoList.create({
   data: { name: "Router Test List", userId: TEST_USER_ID },
 });
+```
+
+Update the "rejects empty title" test to include `todoListId` (otherwise Zod rejects the missing field, not the empty title):
+```typescript
+await expect(caller.todo.create({ title: "", todoListId: list.id })).rejects.toThrow();
 ```
 
 Update the round-trip test:
