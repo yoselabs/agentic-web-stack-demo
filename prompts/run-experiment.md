@@ -1,5 +1,21 @@
 # Run Experiment: Template Stress Test
 
+## How to Run
+
+Paste this into a new Claude Code session from the project root:
+
+```
+@prompts/run-experiment.md @HANDOVER.md @REQUIREMENTS.md
+
+Round: N
+Setup status: not done
+Start time: <now>
+```
+
+That's it. The agent runs autonomously and presents results at the end.
+
+---
+
 Autonomous protocol. Read this top-to-bottom, execute each phase in order. Do not ask the user questions — all decisions are made by the agent. The user sees results at the end.
 
 Don't copy code from prior rounds. Don't read prior round branches. Build fresh.
