@@ -2,7 +2,12 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { deleteStoredFile, getStoragePath, storeFile } from "../storage.js";
+import {
+  deleteStoredFile,
+  getStoragePath,
+  readStoredFile,
+  storeFile,
+} from "../storage.js";
 
 const TEST_DIR = join(process.cwd(), ".test-uploads");
 
@@ -43,5 +48,23 @@ describe("storage service", () => {
 
     await deleteStoredFile(TEST_DIR, path);
     expect(existsSync(join(TEST_DIR, path))).toBe(false);
+  });
+
+  it("rejects path traversal in readStoredFile", async () => {
+    await expect(
+      readStoredFile(TEST_DIR, "../../../etc/passwd"),
+    ).rejects.toThrow("Invalid file path");
+  });
+
+  it("rejects path traversal in deleteStoredFile", async () => {
+    await expect(
+      deleteStoredFile(TEST_DIR, "../../../etc/passwd"),
+    ).rejects.toThrow("Invalid file path");
+  });
+
+  it("rejects path traversal in getStoragePath", () => {
+    expect(() => getStoragePath(TEST_DIR, "../outside.csv")).toThrow(
+      "Invalid file path",
+    );
   });
 });
