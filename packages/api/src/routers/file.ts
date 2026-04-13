@@ -17,7 +17,9 @@ export const fileRouter = router({
       const file = await ctx.db.$transaction((tx) =>
         deleteFileRecord(tx, ctx.session.user.id, input.id),
       );
-      await deleteStoredFile(UPLOAD_DIR, file.storagePath);
+      await deleteStoredFile(UPLOAD_DIR, file.storagePath).catch((err) => {
+        console.error("Failed to delete stored file", file.storagePath, err);
+      });
       return file;
     }),
 });

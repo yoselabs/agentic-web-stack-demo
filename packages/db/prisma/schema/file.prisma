@@ -6,7 +6,7 @@ model File {
   originalName  String
   mimeType      String
   size          Int
-  status        String   @default("pending") // pending | processed | error
+  status        String   @default("pending") // pending | processed
   rowCount      Int?
   storagePath   String
   userId        String

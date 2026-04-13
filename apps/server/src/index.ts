@@ -4,6 +4,7 @@ import {
   appRouter,
   createContext,
   createFileRecord,
+  deleteStoredFile,
   getFileWithData,
   processCSV,
   readStoredFile,
@@ -116,17 +117,22 @@ app.post("/api/files/upload", async (c) => {
   const uploadDir = env.UPLOAD_DIR;
   const storageName = await storeFile(uploadDir, file.name, buffer);
 
-  const record = await createFileRecord(db, {
-    userId: session.user.id,
-    filename: storageName,
-    originalName: file.name,
-    mimeType: file.type,
-    size: file.size,
-    storagePath: storageName,
-  });
+  try {
+    const record = await createFileRecord(db, {
+      userId: session.user.id,
+      filename: storageName,
+      originalName: file.name,
+      mimeType: file.type,
+      size: file.size,
+      storagePath: storageName,
+    });
 
-  const processed = await processCSV(db, record.id, buffer);
-  return c.json(processed, 201);
+    const processed = await processCSV(db, record.id, buffer);
+    return c.json(processed, 201);
+  } catch (err) {
+    await deleteStoredFile(uploadDir, storageName).catch(() => {});
+    throw err;
+  }
 });
 
 // File download
