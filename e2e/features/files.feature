@@ -18,12 +18,16 @@ Feature: File Upload and Download
     And I have uploaded "test-data.csv"
     When I click "Preview"
     Then I should see a data table with 3 rows
+    And the table should contain "Alice"
+    And the table should contain "Bob"
+    And the table should contain "Charlie"
 
   Scenario: Download processed file
     Given I am signed in as "download-file@example.com"
     And I navigate to "/files"
     And I have uploaded "test-data.csv"
-    Then I should see "Download"
+    When I download the file "test-data.csv"
+    Then the downloaded file should contain "Alice"
 
   Scenario: Delete an uploaded file
     Given I am signed in as "delete-file@example.com"

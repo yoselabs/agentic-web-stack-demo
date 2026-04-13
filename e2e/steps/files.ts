@@ -40,3 +40,33 @@ then(
     await expect(rows).toHaveCount(count, { timeout: 10000 });
   },
 );
+
+then("the table should contain {string}", async ({ page }, text: string) => {
+  const table = page.locator("table");
+  await expect(table.getByText(text, { exact: true })).toBeVisible({
+    timeout: 5000,
+  });
+});
+
+when("I download the file {string}", async ({ page }, filename: string) => {
+  const row = page.locator("li", { hasText: filename });
+  const downloadPromise = page.waitForEvent("download");
+  await row.getByRole("button", { name: "Download" }).click();
+  const download = await downloadPromise;
+  const path = await download.path();
+  if (!path) throw new Error("Download failed — no file path");
+  // Store download path for subsequent Then step
+  (page as Record<string, unknown>).__lastDownloadPath = path;
+});
+
+then(
+  "the downloaded file should contain {string}",
+  async ({ page }, text: string) => {
+    const path = (page as Record<string, unknown>).__lastDownloadPath as string;
+    if (!path)
+      throw new Error("No download captured — run download step first");
+    const { readFile } = await import("node:fs/promises");
+    const content = await readFile(path, "utf-8");
+    expect(content).toContain(text);
+  },
+);
