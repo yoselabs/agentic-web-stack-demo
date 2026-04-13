@@ -30,7 +30,7 @@ export function FilePreview({ data, isLoading }: FilePreviewProps) {
         </TableHeader>
         <TableBody>
           {data.rows.map((row) => (
-            <TableRow key={data.headers.map((h) => row[h]).join("|")}>
+            <TableRow key={data.headers.map((h) => row[h] ?? "").join("\t")}>
               {data.headers.map((header) => (
                 <TableCell key={header}>{row[header]}</TableCell>
               ))}

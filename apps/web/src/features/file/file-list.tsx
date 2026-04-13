@@ -5,7 +5,7 @@ interface FileListProps {
   files: FileRecord[];
   onPreview: (id: string) => void;
   onDelete: (id: string) => void;
-  getDownloadUrl: (id: string) => string;
+  onDownload: (id: string, filename: string) => void;
   activePreviewId: string | null;
 }
 
@@ -13,7 +13,7 @@ export function FileList({
   files,
   onPreview,
   onDelete,
-  getDownloadUrl,
+  onDownload,
   activePreviewId,
 }: FileListProps) {
   return (
@@ -41,8 +41,12 @@ export function FileList({
                 >
                   {activePreviewId === file.id ? "Hide" : "Preview"}
                 </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={getDownloadUrl(file.id)}>Download</a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDownload(file.id, file.originalName)}
+                >
+                  Download
                 </Button>
               </>
             )}

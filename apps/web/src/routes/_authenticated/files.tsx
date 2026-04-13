@@ -20,7 +20,7 @@ function FilesPage() {
     previewData,
     isPreviewLoading,
     loadPreview,
-    getDownloadUrl,
+    downloadFile,
   } = useFiles(trpc, queryClient);
 
   return (
@@ -42,7 +42,7 @@ function FilesPage() {
             files={files.data ?? []}
             onPreview={loadPreview}
             onDelete={(id) => deleteFile.mutate({ id })}
-            getDownloadUrl={getDownloadUrl}
+            onDownload={downloadFile}
             activePreviewId={previewFileId}
           />
           {previewFileId && previewData && (

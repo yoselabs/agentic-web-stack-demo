@@ -99,7 +99,16 @@ app.post("/api/files/upload", async (c) => {
   if (!(file instanceof File))
     return c.json({ error: "No file provided" }, 400);
 
-  if (file.type !== "text/csv") {
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  if (file.size > MAX_FILE_SIZE) {
+    return c.json({ error: "File too large (max 10 MB)" }, 413);
+  }
+
+  const isCSV =
+    file.type === "text/csv" ||
+    file.type === "application/vnd.ms-excel" ||
+    file.name.endsWith(".csv");
+  if (!isCSV) {
     return c.json({ error: "Only CSV files are accepted" }, 400);
   }
 
@@ -135,7 +144,7 @@ app.get("/api/files/:id/download", async (c) => {
   return new Response(buffer, {
     headers: {
       "Content-Type": fileRecord.mimeType,
-      "Content-Disposition": `attachment; filename="${fileRecord.originalName}"`,
+      "Content-Disposition": `attachment; filename="${fileRecord.originalName.replace(/["\\]/g, "_")}"`,
     },
   });
 });

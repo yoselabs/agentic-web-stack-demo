@@ -74,8 +74,22 @@ export function useFiles(
     }
   };
 
-  const getDownloadUrl = (fileId: string) =>
-    `${API_URL}/api/files/${fileId}/download`;
+  const downloadFile = async (fileId: string, filename: string) => {
+    const res = await fetch(`${API_URL}/api/files/${fileId}/download`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      toast.error("Download failed");
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return {
     files,
@@ -85,6 +99,6 @@ export function useFiles(
     previewData,
     isPreviewLoading,
     loadPreview,
-    getDownloadUrl,
+    downloadFile,
   };
 }
