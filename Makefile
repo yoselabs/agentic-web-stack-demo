@@ -1,4 +1,4 @@
-.PHONY: setup dev db db-push db-generate db-studio db-seed check typecheck lint fix test test-ui test-unit clean routes
+.PHONY: setup dev db db-push db-generate db-studio db-seed check lint fix test test-ui test-unit clean routes
 
 # Zero-conf setup: clone → make setup → make dev
 setup:
@@ -36,12 +36,12 @@ db-seed:
 	pnpm -w run db:seed
 
 # Quality gates
-check: lint typecheck
+check: lint
 lint:
 	@agent-harness lint
+	pnpm -w run typecheck
 fix:
 	@agent-harness fix
-typecheck:
 	pnpm -w run typecheck
 
 # Unit / integration tests (vitest, uses dev database on port 5432)
