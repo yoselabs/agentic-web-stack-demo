@@ -1,6 +1,6 @@
 # e2e — BDD Testing with playwright-bdd
 
-## Add a Feature (BDD-first workflow)
+## BDD-First Workflow
 
 1. **Write the Gherkin spec** in `features/<name>.feature` (Phase 0 — before any code)
 2. **Add Prisma schema** if needed — `make db-push` (Phase 1)
@@ -13,52 +13,196 @@
 
 Step definitions are written AFTER the UI exists so selectors reference real elements. The Gherkin spec (written first) is the behavior contract; step defs are the implementation detail.
 
+## Scenario Strategy
+
+### What BDD Covers (and What It Doesn't)
+
+BDD E2E tests are expensive and slow. They prove the **system works end-to-end for real users**. Edge cases and exhaustive validation belong in unit/integration tests (Vitest).
+
+```
+         /\
+        /  \    BDD E2E — few, critical user paths (this package)
+       /    \   Integration — router auth guards, round-trip CRUD (packages/api/__tests__)
+      /      \  Unit — service functions, parsing, edge cases (packages/api/services/__tests__)
+     /________\
+```
+
+### Positive vs Negative Ratio
+
+**Heavy positive, light negative, always auth + empty state.**
+
+| Category | BDD? | Vitest? | Example |
+|----------|------|---------|---------|
+| Happy path (CRUD, state transitions) | Yes — every operation | Also, for service logic | Upload succeeds, file appears |
+| Empty state | Yes — always | No | "No files uploaded yet" |
+| One negative per validation boundary | Yes — prove boundary exists | Yes — enumerate all cases | Reject non-CSV (BDD), reject .pdf/.exe/.png (Vitest) |
+| Authorization / privacy | Yes — always per domain | Yes — auth guard test | Files private to each user |
+| Error recovery (retry, fallback) | Rarely | Yes | Network failure during upload |
+| Data edge cases (empty string, max length) | No | Yes | 0-byte CSV, 10MB limit |
+| Performance / load | No | No (separate tooling) | — |
+
+**Rule of thumb:** If adding a scenario tests the same code path as an existing one but with different data, it belongs in a Vitest `describe` block with parameterized cases, not a new Gherkin scenario.
+
+### Orthogonal Scenario Design
+
+Think in **behavioral axes** per domain. Each axis gets 1-2 scenarios max:
+
+| Axis | What to test |
+|------|-------------|
+| Happy path | Core operation succeeds |
+| Empty state | First-visit experience |
+| Validation | One representative rejection |
+| Authorization | Unauthenticated blocked, data private per user |
+| State transitions | pending → processed, active → completed |
+| Destructive | Delete removes item, returns to empty state |
+
+If two scenarios share the same axis, ask: do they test genuinely different behaviors?
+
 ## Writing Feature Files
+
+### Declarative Style (Required)
+
+Describe **what** the system does, not **how** the user clicks through it. Scenarios should survive a UI redesign.
+
+```gherkin
+# BAD — imperative (breaks when UI changes)
+When I fill in "Email" with "bob@test.com"
+And I fill in "Password" with "password123"
+And I click the "Sign In" button
+
+# GOOD — declarative (survives UI redesign)
+When I sign in with email "bob@test.com" and password "password123"
+```
+
+```gherkin
+# BAD — implementation detail (URL in Gherkin)
+And I navigate to "/files"
+
+# GOOD — declarative (page name)
+And I am on the files page
+```
+
+### Scenario Structure
 
 ```gherkin
 Feature: Feature Name
 
-  Scenario: Descriptive scenario name
+  Scenario: Descriptive behavior-focused name
     Given I am signed in as "unique-email@example.com"
-    And I navigate to "/page"
+    And I am on the files page
     When I do something
     Then I should see "expected result"
 ```
 
 Rules:
-- Each scenario must be independent — no shared state between scenarios
-- Use unique emails per scenario (DB is shared across parallel workers)
-- Background steps run per-scenario, not per-feature
-- Keep scenarios focused — one behavior per scenario
+- **One behavior per scenario** — if you have multiple When-Then pairs, split into separate scenarios
+- **3-7 steps per scenario** — under 10 max. Long scenarios signal imperative style
+- **Each scenario is independent** — no shared state, runnable in any order
+- **Unique emails per scenario** — DB is shared across parallel workers
+- Only one When-Then pair per scenario
+- Given = preconditions (state), When = action (trigger), Then = assertion (outcome)
+
+### Background Usage
+
+Use `Background` for steps shared by ALL scenarios in a feature. Keep it to 2-3 Given steps max.
+
+```gherkin
+Background:
+  Given I am signed in as "files-user@example.com"
+  And I am on the files page
+```
+
+Don't use Background if only some scenarios need the setup. Background should only contain Given steps.
+
+### Scenario Outlines
+
+Use when the **behavior is the same** but data varies. Every row must represent a genuinely different behavioral case.
+
+```gherkin
+Scenario Outline: Reject invalid file types
+  When I upload a "<filetype>" file
+  Then I should see "Only CSV files are accepted"
+
+  Examples:
+    | filetype |
+    | .pdf     |
+    | .exe     |
+```
+
+Don't use Scenario Outlines when all rows exercise the same code path — one scenario is enough. Put data exhaustiveness in Vitest.
 
 ## Feature File Organization
 
 Feature files map to **domain areas**, not individual capabilities:
 - `auth.feature` — all authentication scenarios
-- `todos.feature` — all todo scenarios (CRUD, reorder, filtering, etc.)
+- `todos.feature` — all todo scenarios (CRUD, reorder, completion)
+- `files.feature` — all file scenarios (upload, download, preview, delete)
 - `mobile-nav.feature` — navigation-specific scenarios
 
-All scenarios for a domain belong in one file. Split into sub-files only when a feature exceeds ~15-20 scenarios. Step definition files mirror feature files: `steps/auth.ts`, `steps/todos.ts`, etc.
+Split into sub-files only when a feature exceeds ~15-20 scenarios. Step definition files mirror feature files.
 
 ## Writing Step Definitions
 
-```typescript
-import { expect } from "@playwright/test";
-import { createBdd } from "playwright-bdd";
+### Organization
 
-const { Given: given, When: when, Then: then } = createBdd();
+Steps are organized by domain. Shared steps (auth, navigation, assertions) live in `auth.ts`. Domain steps live in their own file.
 
-given("step text with {string}", async ({ page }, value: string) => {
-  // implementation
-});
+```
+steps/
+  auth.ts       # sign in/out, navigation, generic assertions (I should see, I click)
+  todos.ts      # todo-specific steps
+  files.ts      # file-specific steps
+  mobile-nav.ts # mobile-specific steps
 ```
 
-Rules:
-- Use `createBdd()` — not decorator syntax
-- Steps are shared across all feature files — write reusable steps
-- Use Playwright's role-based locators: `getByRole`, `getByPlaceholder`, `getByText`
-- Avoid `getByText` for text that appears in multiple places — use `getByRole('heading')` or `.first()`
-- Use `page.locator('button[type="submit"]')` for submit buttons (avoids matching toggle buttons)
+### Reuse Rules
+
+- **Check existing steps before creating new ones.** Run `grep -r "given\|when\|then" e2e/steps/` to see what's available.
+- Steps are shared across all feature files — write reusable, parameterized steps.
+- Extract helper functions for repeated logic (e.g., `uploadFile()`), don't duplicate step definitions.
+- Never call steps from steps — use shared helpers instead.
+
+### Locator Priority (in order of preference)
+
+1. `getByRole("button", { name: "Submit" })` — most resilient, accessible
+2. `getByLabel("Email")` — for labeled form fields
+3. `getByPlaceholder("Add a todo...")` — for inputs without labels
+4. `getByText("Welcome", { exact: true })` — for visible text
+5. `page.locator("li", { hasText: "item" })` — scoped by content
+6. `page.locator('[data-testid="x"]')` — last resort
+
+Avoid CSS class selectors and XPath — they break on UI changes.
+
+### Locator Scoping
+
+When multiple identical elements exist, scope to the nearest **semantic** container:
+
+```typescript
+// BAD: div matches too broadly
+const column = page.locator("div", { has: page.getByRole("heading", { name: "To Do" }) });
+
+// GOOD: scope to semantic element
+const form = page.locator("form", { has: page.getByPlaceholder("Add a card") });
+form.getByRole("button", { name: "Add" });
+```
+
+If no semantic container exists, add `data-testid` to the section wrapper.
+
+### Waiting Strategy
+
+- Prefer `toBeVisible()`, `waitForURL()`, `toHaveCount()` over `waitForTimeout()`
+- Use `waitForLoadState("networkidle")` after mutations that trigger API calls
+- Set reasonable timeouts: `{ timeout: 10000 }` for network operations, `{ timeout: 5000 }` for UI assertions
+
+## AI Agent Guidance
+
+When an AI agent writes Gherkin or step definitions:
+
+- **Review every AI-generated scenario for domain accuracy.** AI generates happy paths well but misses validation and edge cases. Explicitly prompt for: empty states, auth failures, validation errors.
+- **Provide existing step definitions as context.** Without them, AI invents new phrasings for concepts that already have steps.
+- **Use declarative style.** AI defaults to imperative (click-by-click) without explicit instruction.
+- **Don't accept tautological assertions.** "Then the correct results are returned" is not a real assertion. Require concrete expected values.
+- **Few-shot examples matter.** Provide 2-3 existing scenarios from this project as context, not generic BDD tutorials.
 
 ## Auth in Tests
 
@@ -81,27 +225,13 @@ Use the `signUpOrSignIn` helper pattern:
 |---------|-------|-----|
 | `getByRole("button")` click doesn't navigate | `<Link>` wrapping `<Button>` creates nested `<a><button>` | Use `<Button asChild><Link>` instead (single element) |
 
-## Locator Scoping
-
-When multiple identical elements exist in different sections (e.g., "Add" buttons in
-each column), scope to the nearest **semantic** container — not `div`:
-
-```typescript
-// BAD: div matches nested containers too broadly
-const column = page.locator("div", { has: page.getByRole("heading", { name: "To Do" }) });
-column.getByRole("button", { name: "Add" }); // finds buttons in ALL columns
-
-// GOOD: scope to semantic element (form, section, nav, [role="region"])
-const form = page.locator("form", { has: page.getByPlaceholder("Add a card") });
-form.getByRole("button", { name: "Add" }); // finds only this form's button
-```
-
-If no semantic container exists, add `data-testid` to the section wrapper.
-Prefer `form`, `section`, `nav`, `article`, `[role="region"]` over generic `div`.
-
 ## Do Not
 
 - Edit files in `.features-gen/` — they are auto-generated
 - Share mutable state between scenarios
-- Use `waitForTimeout` as the primary waiting strategy — prefer `waitForURL`, `toBeVisible`, `toHaveURL`
-- Hardcode `http://localhost:3000` in step definitions — use `page.goto("/path")` (baseURL configured)
+- Use `waitForTimeout` as the primary waiting strategy
+- Hardcode `http://localhost:3000` in step definitions — use `page.goto("/path")`
+- Write imperative scenarios (click-by-click UI instructions)
+- Put URLs or CSS selectors in Gherkin — those are implementation details
+- Test the same code path with different data in separate scenarios — use Vitest
+- Create duplicate step definitions — check existing steps first
