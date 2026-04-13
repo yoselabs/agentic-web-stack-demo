@@ -7,6 +7,7 @@ export const env = createEnv({
     CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
+    UPLOAD_DIR: z.string().default("./uploads"),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
