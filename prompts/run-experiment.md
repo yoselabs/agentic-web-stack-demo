@@ -4,19 +4,21 @@ Autonomous protocol. Read this top-to-bottom, execute each phase in order. Do no
 
 Don't copy code from prior rounds. Don't read prior round branches. Build fresh.
 
+## What This Measures
+
+The template (`agentic-eng/agentic-web-stack`) evolves between rounds with fixes from prior experiment findings. The feature built is always identical (retro board from `REQUIREMENTS.md`). The workflow is always identical. The only variable is the template itself. Comparing rounds reveals whether template improvements actually help AI agents succeed more easily — fewer errors, less debugging, lower cost.
+
 ## Inputs
 
 The user provides these before starting:
 
 ```
 Round: N
-Branch: feat/retro-board-rN
-Experiment variable: <what's different this round — batching strategy, model selection, etc.>
 Setup status: <done or not — template merged, make setup, make check>
 Start time: <ISO 8601>
 ```
 
-If setup is not done, do Phase 1. If done, skip to Phase 2.
+Branch is always `feat/retro-board-rN`. If setup is not done, do Phase 1. If done, skip to Phase 2.
 
 ## Repo Structure
 
@@ -46,20 +48,18 @@ Record: exploration subagent tokens + duration.
 
 ## Phase 3: Design
 
-Write a design spec. The feature is always the same (retro board from `REQUIREMENTS.md`), so the design focuses on:
+Write a design spec for the retro board feature from `REQUIREMENTS.md`. Sections:
 
-1. How the experiment variable changes the approach
-2. Data model (copy from REQUIREMENTS.md — Board, Card, Vote)
-3. Services layer functions (signatures + behavior)
-4. tRPC router procedures (inputs + wiring)
-5. Frontend hooks (queries, mutations, optimistic updates)
-6. Routes (3 pages, UI structure, HTML elements for BDD locator alignment)
-7. BDD scenarios (8 from REQUIREMENTS.md)
-8. Execution plan (task decomposition based on experiment variable)
-
-**Decision point — batching strategy:** Choose based on the experiment variable. Prior rounds:
-- R1: 10 tasks, R2: 7, R3: 4, R4: 3, R5: 2
-- Sweet spot appears to be 3 tasks. Deviate only if the experiment variable demands it.
+1. Data model (Board, Card, Vote — enums, relations, cascades)
+2. Services layer functions (signatures + behavior + return shapes)
+3. tRPC router procedures (inputs + wiring)
+4. Frontend hooks (queries, mutations, optimistic updates with explicit types)
+5. Routes (3 pages, UI structure, HTML elements for BDD locator alignment)
+6. BDD scenarios (8 from REQUIREMENTS.md)
+7. Execution plan — 3 implementation tasks:
+   - Task 1: Schema + Services + Routers (backend)
+   - Task 2: Hooks + Routes + Navbar (frontend UI)
+   - Task 3: BDD feature file + step definitions + tests
 
 Save to: `docs/superpowers/specs/YYYY-MM-DD-retro-board-rN-design.md`
 Commit.
@@ -146,8 +146,6 @@ start_time: "ISO 8601"
 end_time: "ISO 8601"
 wall_clock_minutes: N
 
-experiment_variable: "description of what's different this round"
-
 subagent_dispatches:
   total: N
   implementation: N
@@ -219,7 +217,6 @@ dx_notes:
   what_helped: []
   what_was_harder: []
   template_improvement_suggestions: []
-  batching_strategy_assessment: "paragraph"
 ```
 
 Update HANDOVER.md completed rounds table with new row.
@@ -228,17 +225,17 @@ Commit.
 ## Phase 9: Reflection
 
 Run `/reflect` with a signal capturing:
-- The batching strategy outcome (was the experiment variable worth testing?)
-- Template gaps found
-- Key decision and its rationale
+- Template gaps found this round
+- What the template improvements fixed vs what's still broken
+- Comparison trend (are rounds getting cheaper/faster or not?)
 
 ## Phase 10: Report to User
 
 Present to the user:
 1. Completed rounds comparison table (from HANDOVER.md)
 2. Key findings (3-5 bullets)
-3. Template gaps found
-4. Recommendation for next round's experiment variable
+3. Template gaps found (with fix suggestions)
+4. Trend assessment: is the template getting better? What's the next highest-value fix?
 
 This is the ONLY point where the user is engaged. Everything before this is autonomous.
 
