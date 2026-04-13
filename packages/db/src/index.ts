@@ -10,5 +10,6 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = db;
 }
 
-export type { PrismaClient } from "@prisma/client";
-export { Prisma } from "@prisma/client";
+// Re-export all generated types (enums, input types, Prisma namespace, PrismaClient, etc.)
+// so consumers can `import { Prisma, MyEnum } from "@project/db"` without reaching into @prisma/client
+export * from "@prisma/client";

@@ -19,7 +19,7 @@ Each directory with a CLAUDE.md has area-specific guidance. Read it before worki
 
 - `make setup` — zero-conf: installs deps, starts Postgres, pushes schema, installs pre-commit hooks
 - `make dev` — start both web and server
-- `make check` — full quality gate: `agent-harness lint` + `tsc -b`
+- `make check` — **full quality gate** (MUST pass before claiming done): `agent-harness lint` + `tsc -b`. Note: `agent-harness lint` alone does NOT catch type errors — always use `make check`, never just lint
 - `make fix` — auto-fix lint issues
 - `make test` — BDD tests (separate test DB on port 5433)
 - `make routes` — regenerate TanStack Router route tree without starting dev server
@@ -80,6 +80,7 @@ All workspace packages use `@project/*` prefix (e.g., `@project/api`, `@project/
 | `<Link>` wrapping `<Button>` | Nested `<a><button>` breaks accessibility and BDD click handlers | Use `<Button asChild><Link to="...">Text</Link></Button>` — renders single `<a>` element |
 | `setQueryData` callback type errors with tRPC | tRPC's `queryKey` type inference breaks on `onMutate` callback parameter | Define explicit types for query data shape (see optimistic updates guide in `apps/web/CLAUDE.md`) |
 | Use `PointerSensor` for DnD touch support | `PointerSensor` consumes Chrome DevTools simulated touch events, blocking `TouchSensor` | Use `MouseSensor` + `TouchSensor` instead of `PointerSensor` + `TouchSensor`, add `touch-action: none` to draggable items |
+| Run `agent-harness lint` instead of `make check` | Lint passes but `tsc -b` catches implicit `any`, missing imports, type mismatches — you think you're green but you're not | Always run `make check` (lint + typecheck). Never treat `agent-harness lint` alone as sufficient |
 
 ## Library Skills (@tanstack/intent)
 
