@@ -42,3 +42,17 @@ Feature: Todo Management
     And I have a todo "Second task"
     When I drag "Second task" above "First task"
     Then "Second task" should appear before "First task"
+
+  Scenario: Import todos from CSV
+    Given I am signed in as "import-todos@example.com"
+    And I am on the todos page
+    When I import todos from "import-todos.csv"
+    Then I should see "Buy milk"
+    And I should see "Walk the dog"
+
+  Scenario: Export todos as CSV
+    Given I am signed in as "export-todos@example.com"
+    And I am on the todos page
+    And I have a todo "Export me"
+    When I export todos
+    Then the downloaded file should contain "Export me"
