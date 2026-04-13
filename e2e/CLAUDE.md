@@ -33,10 +33,10 @@ BDD E2E tests are expensive and slow. They prove the **system works end-to-end f
 
 | Category | BDD? | Vitest? | Example |
 |----------|------|---------|---------|
-| Happy path (CRUD, state transitions) | Yes — every operation | Also, for service logic | Upload succeeds, file appears |
-| Empty state | Yes — always | No | "No files uploaded yet" |
-| One negative per validation boundary | Yes — prove boundary exists | Yes — enumerate all cases | Reject non-CSV (BDD), reject .pdf/.exe/.png (Vitest) |
-| Authorization / privacy | Yes — always per domain | Yes — auth guard test | Files private to each user |
+| Happy path (CRUD, state transitions) | Yes — every operation | Also, for service logic | Create todo, import todos from CSV |
+| Empty state | Yes — always | No | "No todos yet" |
+| One negative per validation boundary | Yes — prove boundary exists | Yes — enumerate all cases | Reject invalid import CSV (BDD), reject empty/malformed rows (Vitest) |
+| Authorization / privacy | Yes — always per domain | Yes — auth guard test | Todos private to each user |
 | Error recovery (retry, fallback) | Rarely | Yes | Network failure during upload |
 | Data edge cases (empty string, max length) | No | Yes | 0-byte CSV, 10MB limit |
 | Performance / load | No | No (separate tooling) | — |
@@ -136,7 +136,6 @@ Don't use Scenario Outlines when all rows exercise the same code path — one sc
 Feature files map to **domain areas**, not individual capabilities:
 - `auth.feature` — all authentication scenarios
 - `todos.feature` — all todo scenarios (CRUD, reorder, completion)
-- `files.feature` — all file scenarios (upload, download, preview, delete)
 - `mobile-nav.feature` — navigation-specific scenarios
 
 Split into sub-files only when a feature exceeds ~15-20 scenarios. Step definition files mirror feature files.
@@ -151,7 +150,6 @@ Steps are organized by domain. Shared steps (auth, navigation, assertions) live 
 steps/
   auth.ts       # sign in/out, navigation, generic assertions (I should see, I click)
   todos.ts      # todo-specific steps
-  files.ts      # file-specific steps
   mobile-nav.ts # mobile-specific steps
 ```
 
@@ -159,7 +157,7 @@ steps/
 
 - **Check existing steps before creating new ones.** Run `grep -r "given\|when\|then" e2e/steps/` to see what's available.
 - Steps are shared across all feature files — write reusable, parameterized steps.
-- Extract helper functions for repeated logic (e.g., `uploadFile()`), don't duplicate step definitions.
+- Extract helper functions for repeated logic, don't duplicate step definitions.
 - Never call steps from steps — use shared helpers instead.
 
 ### Locator Priority (in order of preference)
