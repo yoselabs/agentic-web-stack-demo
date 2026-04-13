@@ -34,11 +34,10 @@ export async function getBoard(db: DbClient, userId: string, boardId: string) {
 
   return {
     ...board,
-    cards: board.cards.map((card) => ({
+    cards: board.cards.map(({ votes, ...card }) => ({
       ...card,
-      voteCount: card.votes.length,
-      hasVoted: card.votes.some((v) => v.userId === userId),
-      votes: undefined,
+      voteCount: votes.length,
+      hasVoted: votes.some((v) => v.userId === userId),
     })),
   };
 }
