@@ -30,9 +30,6 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Uploads
-uploads/
-
 # Testing
 test-results/
 playwright-report/

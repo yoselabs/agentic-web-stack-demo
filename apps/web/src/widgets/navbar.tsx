@@ -13,7 +13,6 @@ import { Logo } from "./logo";
 const navLinks = [
   { to: "/dashboard" as const, label: "Dashboard" },
   { to: "/todos" as const, label: "Todos" },
-  { to: "/files" as const, label: "Files" },
 ];
 
 export function Navbar() {

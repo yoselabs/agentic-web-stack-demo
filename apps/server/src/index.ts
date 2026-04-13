@@ -1,15 +1,6 @@
 import { serve } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
-import {
-  appRouter,
-  createContext,
-  createFileRecord,
-  deleteStoredFile,
-  getFileWithData,
-  processCSV,
-  readStoredFile,
-  storeFile,
-} from "@project/api";
+import { appRouter, createContext } from "@project/api";
 import { auth } from "@project/auth";
 import { db } from "@project/db";
 import { env } from "@project/env";
@@ -88,92 +79,6 @@ app.get("/health", async (c) => {
 // Better-Auth handler
 app.on(["POST", "GET"], "/api/auth/**", (c) => {
   return auth.handler(c.req.raw);
-});
-
-// File upload — multipart (not tRPC, needs raw request body)
-app.post("/api/files/upload", async (c) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) return c.json({ error: "Unauthorized" }, 401);
-
-  const formData = await c.req.formData();
-  const file = formData.get("file");
-  if (!(file instanceof File))
-    return c.json({ error: "No file provided" }, 400);
-
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-  if (file.size > MAX_FILE_SIZE) {
-    return c.json({ error: "File too large (max 10 MB)" }, 413);
-  }
-
-  const isCSV =
-    file.type === "text/csv" ||
-    file.type === "application/vnd.ms-excel" ||
-    file.name.endsWith(".csv");
-  if (!isCSV) {
-    return c.json({ error: "Only CSV files are accepted" }, 400);
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const uploadDir = env.UPLOAD_DIR;
-  const storageName = await storeFile(uploadDir, file.name, buffer);
-
-  try {
-    const record = await createFileRecord(db, {
-      userId: session.user.id,
-      filename: storageName,
-      originalName: file.name,
-      mimeType: file.type,
-      size: file.size,
-      storagePath: storageName,
-    });
-
-    const processed = await processCSV(db, record.id, buffer);
-    return c.json(processed, 201);
-  } catch (err) {
-    await deleteStoredFile(uploadDir, storageName).catch(() => {});
-    throw err;
-  }
-});
-
-// File download
-app.get("/api/files/:id/download", async (c) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) return c.json({ error: "Unauthorized" }, 401);
-
-  const fileRecord = await db.file.findFirst({
-    where: { id: c.req.param("id"), userId: session.user.id },
-  });
-  if (!fileRecord) return c.json({ error: "File not found" }, 404);
-
-  const buffer = await readStoredFile(env.UPLOAD_DIR, fileRecord.storagePath);
-
-  return new Response(buffer, {
-    headers: {
-      "Content-Type": fileRecord.mimeType,
-      "Content-Disposition": `attachment; filename="${fileRecord.originalName.replace(/["\\]/g, "_")}"`,
-    },
-  });
-});
-
-// File preview data
-app.get("/api/files/:id/preview", async (c) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) return c.json({ error: "Unauthorized" }, 401);
-
-  const fileRecord = await db.file.findFirst({
-    where: { id: c.req.param("id"), userId: session.user.id },
-  });
-  if (!fileRecord) return c.json({ error: "File not found" }, 404);
-
-  const buffer = await readStoredFile(env.UPLOAD_DIR, fileRecord.storagePath);
-  const result = await getFileWithData(
-    db,
-    session.user.id,
-    fileRecord.id,
-    buffer,
-  );
-
-  return c.json({ headers: result.headers, rows: result.rows });
 });
 
 // tRPC handler — pass session into context
