@@ -2,42 +2,42 @@ Feature: Todo Management
 
   Scenario: Empty state shows no todos
     Given I am signed in as "empty-todos@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     Then I should see "No todos yet"
 
   Scenario: Create a todo
     Given I am signed in as "create-todo@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     When I fill in "Add a todo..." with "Buy groceries"
     And I click "Add"
     Then I should see "Buy groceries"
 
   Scenario: Complete a todo
     Given I am signed in as "complete-todo@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     And I have a todo "Write tests"
     When I toggle the todo "Write tests"
     Then the todo "Write tests" should be completed
 
   Scenario: Delete a todo
     Given I am signed in as "delete-todo@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     And I have a todo "Old task"
     When I delete the todo "Old task"
     Then I should not see "Old task"
 
   Scenario: Todos are private to each user
     Given I am signed in as "private-todos@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     And I have a todo "My private task"
     When I sign out and sign in as "other-user@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     Then I should not see "My private task"
     And I should see "No todos yet"
 
   Scenario: Reorder todos by dragging
     Given I am signed in as "reorder-todos@example.com"
-    And I navigate to "/todos"
+    And I am on the todos page
     And I have a todo "First task"
     And I have a todo "Second task"
     When I drag "Second task" above "First task"

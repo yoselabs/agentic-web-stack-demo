@@ -38,6 +38,8 @@ async function signUpOrSignIn(
   }
 }
 
+// --- Given ---
+
 given("I am on the login page", async ({ page }) => {
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
@@ -60,14 +62,52 @@ given("I am signed in as {string}", async ({ page }, email: string) => {
 });
 
 given("I am on the dashboard", async ({ page }) => {
-  await expect(page).toHaveURL(/\/dashboard/);
+  if (!page.url().includes("/dashboard")) {
+    await page.goto("/dashboard");
+    await page.waitForLoadState("networkidle");
+  }
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
     timeout: 5000,
   });
 });
 
-when("I switch to sign up mode", async ({ page }) => {
-  await page.getByRole("button", { name: "Sign Up" }).click();
+given("I am on the todos page", async ({ page }) => {
+  await page.goto("/todos");
+  await page.waitForLoadState("networkidle");
+});
+
+given("I am on the files page", async ({ page }) => {
+  await page.goto("/files");
+  await page.waitForLoadState("networkidle");
+});
+
+// --- When ---
+
+when(
+  "I sign up as {string} with email {string}",
+  async ({ page }, name: string, email: string) => {
+    await page.getByRole("button", { name: "Sign Up" }).click();
+    await page.getByLabel("Name").fill(name);
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill("testpassword123");
+    await page.locator('button[type="submit"]').click();
+    await page.waitForLoadState("networkidle");
+  },
+);
+
+when(
+  "I sign in with email {string} and password {string}",
+  async ({ page }, email: string, password: string) => {
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.locator('button[type="submit"]').click();
+    await page.waitForLoadState("networkidle");
+  },
+);
+
+when("I navigate to {string}", async ({ page }, path: string) => {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
 });
 
 when(
@@ -83,16 +123,6 @@ when(
   },
 );
 
-when("I submit the form", async ({ page }) => {
-  await page.locator('button[type="submit"]').click();
-  await page.waitForLoadState("networkidle");
-});
-
-when("I navigate to {string}", async ({ page }, path: string) => {
-  await page.goto(path);
-  await page.waitForLoadState("networkidle");
-});
-
 when("I click {string}", async ({ page }, text: string) => {
   const btn = page.getByRole("button", { name: text });
   // On mobile, buttons in the navbar may be hidden behind the hamburger menu
@@ -106,6 +136,8 @@ when("I click {string}", async ({ page }, text: string) => {
   await btn.click();
   await page.waitForLoadState("networkidle");
 });
+
+// --- Then ---
 
 then("I should be on the dashboard", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });

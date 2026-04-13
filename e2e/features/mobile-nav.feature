@@ -10,7 +10,7 @@ Feature: Mobile Navigation
 
   Scenario: Mobile menu navigates and closes
     Given I am signed in as "mobile-menu-nav@example.com"
-    And I navigate to "/dashboard"
+    And I am on the dashboard
     When I open the mobile menu
     And I tap "Todos" in the menu
     Then I should be on the todos page
