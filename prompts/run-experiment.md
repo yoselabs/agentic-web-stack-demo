@@ -1,12 +1,8 @@
 # Run Experiment: Template Stress Test
 
-Read `HANDOVER.md` — it has full context. This is Round N of a template stress-test experiment.
+Autonomous protocol. Read this top-to-bottom, execute each phase in order. Do not ask the user questions — all decisions are made by the agent. The user sees results at the end.
 
-The template repo (`agentic-eng/agentic-web-stack`) may have been updated with fixes from prior rounds. Pull those updates into `main`, then build the retro board feature from scratch using `REQUIREMENTS.md`. Measure everything — tokens, cost, time, issues — and compare against prior rounds.
-
-## What This Measures
-
-The template (`agentic-eng/agentic-web-stack`) evolves between rounds with fixes from prior experiment findings. The feature built is always identical (retro board from `REQUIREMENTS.md`). The workflow is always identical. The only variable is the template itself. Comparing rounds reveals whether template improvements actually help AI agents succeed more easily — fewer errors, less debugging, lower cost.
+Don't copy code from prior rounds. Don't read prior round branches. Build fresh.
 
 ## Inputs
 
@@ -14,87 +10,70 @@ The user provides these before starting:
 
 ```
 Round: N
+Branch: feat/retro-board-rN
+Experiment variable: <what's different this round — batching strategy, model selection, etc.>
 Setup status: <done or not — template merged, make setup, make check>
 Start time: <ISO 8601>
 ```
 
-Branch is always `feat/retro-board-rN`. If setup is not done, do Phase 1. If done, skip to Phase 2.
+If setup is not done, do Phase 1. If done, skip to Phase 2.
 
 ## Repo Structure
 
-- `main` = template (`agentic-eng/agentic-web-stack`) + experiment scaffolding (HANDOVER, REQUIREMENTS, prompts/)
+- `main` = template + experiment scaffolding (HANDOVER, REQUIREMENTS, prompts/)
 - `feat/retro-board-rN` = each round's implementation (one branch per round, never deleted)
-- Remote `template` points to `agentic-eng/agentic-web-stack`
-- Remote `origin` points to `agentic-eng/agentic-web-stack-demo`
+- Remote `template` = upstream template repo
+- Remote `origin` = experiment demo repo
 
-Main stays in sync with the template. Scaffolding files (HANDOVER.md, REQUIREMENTS.md, prompts/) don't exist in the template, so merges are clean.
+## Phase 1: Setup (skip if user says done)
 
-## Workflow
+```bash
+git checkout main
+git fetch template
+git merge template/main
+git push origin main
+make setup && make check  # must pass 13/13 + typecheck
+git checkout -b feat/retro-board-rN
+```
 
-### Phase 1: Setup
+Record start time.
 
-1. Read `HANDOVER.md` and `REQUIREMENTS.md`
-2. Read prior `EXPERIMENT*.yaml` files (on prior round branches) for baseline numbers
-3. Pull template updates into main:
-   ```bash
-   git checkout main
-   git fetch template
-   git merge template/main
-   # Scaffolding files don't conflict — they only exist in our repo
-   # If somehow messy: git reset --hard template/main, then cherry-pick scaffolding commits
-   ```
-4. Push updated main: `git push origin main`
-5. Run `make setup && make check` — verify clean baseline
-6. Create feature branch: `git checkout -b feat/retro-board-rN`
-7. Record start time
+## Phase 2: Context Exploration
 
-### Phase 2: Brainstorming & Design
+Dispatch an Explore subagent to read ALL CLAUDE.md files, Makefile, existing patterns (services, routers, hooks, routes, BDD steps), and current Prisma schema. This builds the context needed for design and planning.
 
-Follow the full `superpowers:brainstorming` process:
+Record: exploration subagent tokens + duration.
 
-1. Explore project context (read CLAUDE.md files, existing patterns, recent commits)
-2. Ask clarifying questions (one at a time, multiple choice preferred)
-3. Propose 2-3 approaches with trade-offs and recommendation
-4. Present design section-by-section, get user approval after each
-5. Write design doc to `docs/superpowers/specs/YYYY-MM-DD-retro-board-rN-design.md`, commit
-6. Run spec self-review (placeholders, contradictions, ambiguity, scope)
-7. Request code review on the spec via `superpowers:requesting-code-review`
-8. Fix any issues found, get user sign-off on final spec
+## Phase 3: Design
 
-Write a design spec for the retro board feature from `REQUIREMENTS.md`. Sections:
+Write a design spec. The feature is always the same (retro board from `REQUIREMENTS.md`), so the design focuses on:
 
-1. Data model (Board, Card, Vote — enums, relations, cascades)
-2. Services layer functions (signatures + behavior + return shapes)
-3. tRPC router procedures (inputs + wiring)
-4. Frontend hooks (queries, mutations, optimistic updates with explicit types)
-5. Routes (3 pages, UI structure, HTML elements for BDD locator alignment)
-6. BDD scenarios (8 from REQUIREMENTS.md)
-7. Execution plan — 3 implementation tasks:
-   - Task 1: Schema + Services + Routers (backend)
-   - Task 2: Hooks + Routes + Navbar (frontend UI)
-   - Task 3: BDD feature file + step definitions + tests
+1. How the experiment variable changes the approach
+2. Data model (copy from REQUIREMENTS.md — Board, Card, Vote)
+3. Services layer functions (signatures + behavior)
+4. tRPC router procedures (inputs + wiring)
+5. Frontend hooks (queries, mutations, optimistic updates)
+6. Routes (3 pages, UI structure, HTML elements for BDD locator alignment)
+7. BDD scenarios (8 from REQUIREMENTS.md)
+8. Execution plan (task decomposition based on experiment variable)
 
-### Phase 4: Execution
+**Decision point — batching strategy:** Choose based on the experiment variable. Prior rounds:
+- R1: 10 tasks, R2: 7, R3: 4, R4: 3, R5: 2
+- Sweet spot appears to be 3 tasks. Deviate only if the experiment variable demands it.
 
-Use `superpowers:subagent-driven-development` to execute the plan:
+Save to: `docs/superpowers/specs/YYYY-MM-DD-retro-board-rN-design.md`
+Commit.
 
-1. Create feature branch: `git checkout -b feat/retro-board-rN`
-2. Fresh subagent per task (sonnet for implementation, opus for orchestration)
-3. After each implementation task:
-   - Dispatch spec compliance reviewer (verify code matches plan)
-   - Dispatch code quality reviewer (verify code is well-built)
-   - Fix any issues found before moving to next task
-4. Orchestrator handles between-task work:
-   - Route tree regeneration (`make dev` briefly then kill)
-   - `as string` cast cleanup once all routes exist
-   - `make check` after each task group
-   - Badge/component installation if missing from template
-5. After all tasks: run `make test`, fix BDD locator issues if needed
-6. Use `superpowers:finishing-a-development-branch` for final review
+## Phase 4: Design Review
 
-### Phase 4: Measurement
+Dispatch `superpowers:code-reviewer` subagent on the design spec. Brief it:
+- Check against REQUIREMENTS.md for completeness
+- Check internal consistency (service signatures match router usage, return shapes match frontend types)
+- Check for gaps that would trip up implementation subagents
 
-Create `EXPERIMENT-RN.yaml` with:
+Fix all issues found. Commit fixes.
+
+Record: review subagent tokens + duration + issues found.
 
 ## Phase 5: Implementation Plan
 
@@ -167,6 +146,8 @@ start_time: "ISO 8601"
 end_time: "ISO 8601"
 wall_clock_minutes: N
 
+experiment_variable: "description of what's different this round"
+
 subagent_dispatches:
   total: N
   implementation: N
@@ -238,6 +219,7 @@ dx_notes:
   what_helped: []
   what_was_harder: []
   template_improvement_suggestions: []
+  batching_strategy_assessment: "paragraph"
 ```
 
 Update HANDOVER.md completed rounds table with new row.
@@ -246,36 +228,32 @@ Commit.
 ## Phase 9: Reflection
 
 Run `/reflect` with a signal capturing:
-- Template gaps found this round
-- What the template improvements fixed vs what's still broken
-- Comparison trend (are rounds getting cheaper/faster or not?)
+- The batching strategy outcome (was the experiment variable worth testing?)
+- Template gaps found
+- Key decision and its rationale
 
-**Comparison metrics (vs prior rounds):**
-- Were prior round issues fixed?
-- Did subagents need fewer retries/corrections?
-- New issues not seen before?
-- Number of spec reviewer issues found
-- Number of code quality reviewer issues found
+## Phase 10: Report to User
 
 Present to the user:
 1. Completed rounds comparison table (from HANDOVER.md)
 2. Key findings (3-5 bullets)
-3. Template gaps found (with fix suggestions)
-4. Trend assessment: is the template getting better? What's the next highest-value fix?
+3. Template gaps found
+4. Recommendation for next round's experiment variable
 
-### Phase 5: Reflection
+This is the ONLY point where the user is engaged. Everything before this is autonomous.
 
-Run `/reflect` with observations about:
-- Template friction points (what tripped up subagents)
-- Tech quirks (type inference, locator issues, route tree regen)
-- Suggestions for template improvements
-- What went well and should be preserved
+## Known Patterns (from 5 rounds)
 
-## Known Gotchas (from prior rounds)
+These are proven solutions. Don't reinvent them:
 
-- **Route tree regen:** No standalone CLI command. Must start `make dev` briefly, wait ~3-5s, kill it. Subagents struggle with this — orchestrator may need to do it manually.
-- **Sequential route creation:** `Link to="/not-yet-created-route"` fails typecheck. Use `as string` cast temporarily, clean up after all routes exist and tree regenerates.
-- **setQueryData types:** `(old: typeof previous) => ...` loses type inference when previous includes undefined. Define explicit types for the callback parameter.
-- **Column-scoped BDD locators:** `page.locator("div", { has: heading })` matches nested divs. Use `page.locator("form", { has: input })` or placeholder-anchored locators.
-- **Link-wrapped Button:** `<Link><Button>text</Button></Link>` — the button is clickable but navigation may not trigger. Use direct `page.goto()` in BDD or use `<Link>` with className.
-- **Kill dev servers before tests:** `lsof -ti :3000,:3001,:3100,:3101 | xargs kill -9` before `make test`
+- `make routes` for route tree regeneration (not dev server dance)
+- `as string` cast for Link to not-yet-created routes, remove after `make routes`
+- Explicit `CardItem`/`BoardCard` types for `setQueryData` callbacks
+- `waitFor({ state: "detached" })` for optimistic delete assertions (not `not.toBeVisible`)
+- Section-scoped BDD locators: `page.locator("section", { has: heading })`
+- `signUpOrSignIn` helper for BDD auth steps
+- Export Prisma enum types from `packages/db/src/index.ts`
+- `<Button asChild><Link>` pattern (not `<Link><Button>`)
+- Unique email per BDD scenario
+- `pnpm exec bddgen` from `e2e/` directory (not root)
+- Agent-harness lint may pass while `tsc -b` fails — always verify both
