@@ -65,11 +65,10 @@ export async function reorderTodos(
   ids: string[],
 ) {
   const pairs = ids.map((id, i) => Prisma.sql`(${id}::text, ${i}::integer)`);
-  // Note: verify Prisma.join separator behavior against current Prisma version
   await db.$executeRaw`
     UPDATE "Todo" AS t
     SET "position" = d.new_position
-    FROM (VALUES ${Prisma.join(pairs)}) AS d(id, new_position)
+    FROM (VALUES ${Prisma.join(pairs, ",")}) AS d(id, new_position)
     WHERE t.id = d.id AND t."userId" = ${userId}
   `;
 }
