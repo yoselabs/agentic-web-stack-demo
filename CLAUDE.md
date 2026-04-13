@@ -79,6 +79,7 @@ All workspace packages use `@project/*` prefix (e.g., `@project/api`, `@project/
 | `//` in JSX text content | Biome `noCommentText` flags as comment | Wrap in expression: `<p>{"https://example.com"}</p>` |
 | `<Link>` wrapping `<Button>` | Nested `<a><button>` breaks accessibility and BDD click handlers | Use `<Button asChild><Link to="...">Text</Link></Button>` — renders single `<a>` element |
 | `setQueryData` callback type errors with tRPC | tRPC's `queryKey` type inference breaks on `onMutate` callback parameter | Define explicit types for query data shape (see optimistic updates guide in `apps/web/CLAUDE.md`) |
+| Use `PointerSensor` for DnD touch support | `PointerSensor` consumes Chrome DevTools simulated touch events, blocking `TouchSensor` | Use `MouseSensor` + `TouchSensor` instead of `PointerSensor` + `TouchSensor`, add `touch-action: none` to draggable items |
 
 ## Library Skills (@tanstack/intent)
 
